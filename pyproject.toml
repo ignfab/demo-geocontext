@@ -5,7 +5,11 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "asyncio>=4.0.0",
     "fastapi>=0.117.1",
+    "langchain-mcp-adapters>=0.1.10",
+    "langchain[anthropic]>=0.3.27",
+    "langgraph[anthropic]>=0.6.7",
     "redis>=6.4.0",
     "unicorn[standard]>=2.1.4",
     "uvicorn>=0.37.0",
