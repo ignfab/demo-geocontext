@@ -15,13 +15,13 @@ class MessageRequest(BaseModel):
 
 @app.get("/chat/{room_name}/messages")
 async def get_messages(room_name: str) -> list[ChatMessage]:
-    chat_room = get_chat_room(room_name)
-    return chat_room.get_messages()
+    chat_room = await get_chat_room(room_name)
+    return await chat_room.get_messages()
 
 @app.post("/chat/{room_name}/messages")
 async def add_message(room_name: str, message: MessageRequest) -> ChatMessage :
-    chat_room = get_chat_room(room_name)
-    return chat_room.add_message(message.content)
+    chat_room = await get_chat_room(room_name)
+    return await chat_room.add_message(message.content)
 
 # @app.get("/")
 # async def root():
