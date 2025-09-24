@@ -20,7 +20,12 @@ def is_valid_json(text):
         return False
 
 with gr.Blocks() as demo:
-    chatbot = gr.Chatbot(type="messages")
+    chatbot = gr.Chatbot(
+        type="messages", 
+        label="demo-geocontext",
+        show_copy_button=True,
+        show_copy_all_button=True
+    )
     msg = gr.Textbox()
     clear = gr.Button("Clear")
 
