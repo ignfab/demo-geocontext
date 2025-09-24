@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 import gradio as gr
 import random
@@ -9,6 +10,14 @@ from agent import build_graph
 graph = asyncio.run(build_graph())
 
 config = {"configurable": {"thread_id": "thread-1"}}
+
+def is_valid_json(text):
+    """Vérifie si une chaîne de caractères est un JSON valide"""
+    try:
+        json.loads(text)
+        return True
+    except (json.JSONDecodeError, TypeError):
+        return False
 
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot(type="messages")
@@ -62,7 +71,27 @@ with gr.Blocks() as demo:
                                     })
                                 elif node_name == "tools":
                                     # Ajouter les résultats des outils
-                                    history.append({"role": "assistant", "content": f"{text_content}", "metadata": {"title": "📊 Résultat outil"}})
+                                    if is_valid_json(text_content):
+                                        # Si c'est du JSON valide, le formater avec coloration syntaxique
+                                        try:
+                                            parsed_json = json.loads(text_content)
+                                            formatted_json = json.dumps(parsed_json, indent=2, ensure_ascii=False)
+                                            content = f"```json\n{formatted_json}\n```"
+                                        except:
+                                            content = f"```\n{text_content}\n```"
+                                        
+                                        history.append({
+                                            "role": "assistant", 
+                                            "content": content, 
+                                            "metadata": {"title": "📊 Résultat outil"}
+                                        })
+                                    else:
+                                        # Sinon, utiliser le texte normal
+                                        history.append({
+                                            "role": "assistant", 
+                                            "content": f"{text_content}", 
+                                            "metadata": {"title": "📊 Résultat outil"}
+                                        })
                                 else:
                                     # Autres types de nœuds
                                     history.append({"role": "assistant", "content": f"[{node_name}] {text_content}"})
