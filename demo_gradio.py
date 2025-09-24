@@ -8,6 +8,7 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.graph import StateGraph, MessagesState, START
 from langgraph.prebuilt import ToolNode, tools_condition
 from langchain.chat_models import init_chat_model
+from langgraph.checkpoint.memory import InMemorySaver
 
 async def build_graph():
         
@@ -38,7 +39,8 @@ async def build_graph():
         tools_condition,
     )
     builder.add_edge("tools", "call_model")
-    return builder.compile()
+    memory = InMemorySaver()
+    return builder.compile(checkpointer=memory)
 
 graph = asyncio.run(build_graph())    
 
@@ -54,9 +56,6 @@ with gr.Blocks() as demo:
 
     async def bot(history: list):
         user_message = history[-1]['content']
-
-        # Initialiser la réponse de l'assistant dans l'historique
-        history.append({"role": "assistant", "content": ""})
         
         async for event in graph.astream({"messages": [{"role": "user", "content": user_message}]}, config=config):
             print("Event:", event)
@@ -64,13 +63,19 @@ with gr.Blocks() as demo:
             # Traiter les différents types d'événements
             for node_name, node_data in event.items():
                 if "messages" in node_data:
+                    print("=======================================================================")
+                    print("=======================================================================")
+                    print("=======================================================================")
                     messages = node_data["messages"]
                     if messages:
                         last_message = messages[-1] if isinstance(messages, list) else messages
                         print(f"Node {node_name}:")
                         print(last_message.pretty_print())
+                        print("=======================================================================")
+                        print(f"message={last_message.pretty_repr()}")
+                        print("=======================================================================")
                         
-                        # Mise à jour du contenu en streaming
+                        # Créer un nouveau message pour chaque événement
                         if hasattr(last_message, 'content') and last_message.content:
                             # Extraire le contenu textuel
                             text_content = ""
@@ -90,22 +95,26 @@ with gr.Blocks() as demo:
                                 text_content = "\n".join(text_parts)
                             
                             if text_content:
-                                # Accumuler le contenu pour conserver tout l'historique
-                                current_content = history[-1]['content']
-                                separator = "\n\n" if current_content else ""
-                                
+                                # Ajouter un nouveau message pour chaque type d'événement
                                 if node_name == "call_model":
-                                    # Ajouter la réflexion du modèle avec préfixe
-                                    new_content = f"💭 Réflexion: {text_content}"
+                                    # Ajouter la réflexion du modèle
+                                    history.append({
+                                        "role": "assistant", 
+                                        "content": f"{text_content}", 
+                                        "metadata": {"title": "💭 Réflexion"}
+                                    })
                                 elif node_name == "tools":
-                                    # Ajouter les résultats des outils avec préfixe
-                                    new_content = f"📊 Résultat outil: {text_content}"
+                                    # Ajouter les résultats des outils
+                                    history.append({"role": "assistant", "content": f"{text_content}", "metadata": {"title": "📊 Résultat outil"}})
                                 else:
                                     # Autres types de nœuds
-                                    new_content = f"[{node_name}] {text_content}"
+                                    history.append({"role": "assistant", "content": f"[{node_name}] {text_content}"})
                                 
-                                history[-1]['content'] = current_content + separator + new_content
                                 yield history
+
+        # Remove metadata for the last message
+        history[-1]["metadata"] = None
+        yield history
 
     msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
         bot, chatbot, chatbot
