@@ -55,17 +55,57 @@ with gr.Blocks() as demo:
     async def bot(history: list):
         user_message = history[-1]['content']
 
-        response = await graph.ainvoke({"messages": [{"role": "user", "content": user_message}]}, config=config)
+        # Initialiser la réponse de l'assistant dans l'historique
+        history.append({"role": "assistant", "content": ""})
         
-        # Récupérer la dernière réponse de l'assistant
-        last_message = response["messages"][-1]
-        print(last_message.pretty_print())
-        content = last_message.content
-        
-        if content:  # Vérifier que le contenu n'est pas None
-            history.append({"role": "assistant", "content": content})
-        
-        return history
+        async for event in graph.astream({"messages": [{"role": "user", "content": user_message}]}, config=config):
+            print("Event:", event)
+            
+            # Traiter les différents types d'événements
+            for node_name, node_data in event.items():
+                if "messages" in node_data:
+                    messages = node_data["messages"]
+                    if messages:
+                        last_message = messages[-1] if isinstance(messages, list) else messages
+                        print(f"Node {node_name}:")
+                        print(last_message.pretty_print())
+                        
+                        # Mise à jour du contenu en streaming
+                        if hasattr(last_message, 'content') and last_message.content:
+                            # Extraire le contenu textuel
+                            text_content = ""
+                            if isinstance(last_message.content, str):
+                                text_content = last_message.content
+                            elif isinstance(last_message.content, list):
+                                # Extraire le texte des blocks de contenu
+                                text_parts = []
+                                for block in last_message.content:
+                                    if isinstance(block, dict) and block.get('type') == 'text':
+                                        text_parts.append(block.get('text', ''))
+                                    elif isinstance(block, dict) and block.get('type') == 'tool_use':
+                                        # Afficher les appels d'outils de manière lisible
+                                        tool_name = block.get('name', 'unknown')
+                                        tool_args = block.get('input', {})
+                                        text_parts.append(f"🔧 Appel outil: {tool_name}({tool_args})")
+                                text_content = "\n".join(text_parts)
+                            
+                            if text_content:
+                                # Accumuler le contenu pour conserver tout l'historique
+                                current_content = history[-1]['content']
+                                separator = "\n\n" if current_content else ""
+                                
+                                if node_name == "call_model":
+                                    # Ajouter la réflexion du modèle avec préfixe
+                                    new_content = f"💭 Réflexion: {text_content}"
+                                elif node_name == "tools":
+                                    # Ajouter les résultats des outils avec préfixe
+                                    new_content = f"📊 Résultat outil: {text_content}"
+                                else:
+                                    # Autres types de nœuds
+                                    new_content = f"[{node_name}] {text_content}"
+                                
+                                history[-1]['content'] = current_content + separator + new_content
+                                yield history
 
     msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
         bot, chatbot, chatbot
