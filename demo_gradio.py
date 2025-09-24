@@ -4,45 +4,9 @@ import gradio as gr
 import random
 import time
 
-from langchain_mcp_adapters.client import MultiServerMCPClient
-from langgraph.graph import StateGraph, MessagesState, START
-from langgraph.prebuilt import ToolNode, tools_condition
-from langchain.chat_models import init_chat_model
-from langgraph.checkpoint.memory import InMemorySaver
+from agent import build_graph
 
-async def build_graph():
-        
-    model = init_chat_model("anthropic:claude-3-5-sonnet-latest")
-
-    client = MultiServerMCPClient(
-        {
-            "geocontext": {
-                "command": "npx",
-                # Make sure to update to the full absolute path to your math_server.py file
-                "args": ["-y", "@mborne/geocontext"],
-                "transport": "stdio",
-            }
-        }
-    )
-    tools = await client.get_tools()
-
-    async def call_model(state: MessagesState):
-        response = await model.bind_tools(tools).ainvoke(state["messages"])
-        return {"messages": response}
-
-    builder = StateGraph(MessagesState)
-    builder.add_node(call_model)
-    builder.add_node(ToolNode(tools))
-    builder.add_edge(START, "call_model")
-    builder.add_conditional_edges(
-        "call_model",
-        tools_condition,
-    )
-    builder.add_edge("tools", "call_model")
-    memory = InMemorySaver()
-    return builder.compile(checkpointer=memory)
-
-graph = asyncio.run(build_graph())    
+graph = asyncio.run(build_graph())
 
 config = {"configurable": {"thread_id": "thread-1"}}
 
@@ -63,17 +27,10 @@ with gr.Blocks() as demo:
             # Traiter les différents types d'événements
             for node_name, node_data in event.items():
                 if "messages" in node_data:
-                    print("=======================================================================")
-                    print("=======================================================================")
-                    print("=======================================================================")
                     messages = node_data["messages"]
                     if messages:
                         last_message = messages[-1] if isinstance(messages, list) else messages
-                        print(f"Node {node_name}:")
                         print(last_message.pretty_print())
-                        print("=======================================================================")
-                        print(f"message={last_message.pretty_repr()}")
-                        print("=======================================================================")
                         
                         # Créer un nouveau message pour chaque événement
                         if hasattr(last_message, 'content') and last_message.content:
@@ -122,4 +79,5 @@ with gr.Blocks() as demo:
     clear.click(lambda: None, None, chatbot, queue=False)
 
 if __name__ == "__main__":
-    demo.launch()
+    print("Demo is running on http://localhost:7860")
+    demo.launch(server_name="0.0.0.0", server_port=7860, share=True)
