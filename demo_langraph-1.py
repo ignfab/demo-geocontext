@@ -10,40 +10,20 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
-client = MultiServerMCPClient(
-    {
-        "math": {
-            "command": "npx",
-            # Replace with absolute path to your math_server.py file
-            "args": ["-y", "@mborne/geocontext"],
-            "transport": "stdio",
-        }
-    }
-)
-tools = await client.get_tools()
-
-
 class State(TypedDict):
     messages: Annotated[list, add_messages]
 
-
 graph_builder = StateGraph(State)
 
-
 llm = init_chat_model("anthropic:claude-3-5-sonnet-latest")
-
 
 def chatbot(state: State):
     return {"messages": [llm.invoke(state["messages"])]}
 
 
-# The first argument is the unique node name
-# The second argument is the function or object that will be called whenever
-# the node is used.
 graph_builder.add_node("chatbot", chatbot)
 graph_builder.add_edge(START, "chatbot")
 graph_builder.add_edge("chatbot", END)
-
 
 memory = InMemorySaver()
 graph = graph_builder.compile(checkpointer=memory)
@@ -53,7 +33,6 @@ def stream_graph_updates(user_input: str):
     for event in graph.stream({"messages": [{"role": "user", "content": user_input}]}, config=config):
         for value in event.values():
             print("Assistant:", value["messages"][-1].content)
-
 
 while True:
     try:
