@@ -82,7 +82,7 @@ with gr.Blocks() as demo:
                                         try:
                                             parsed_json = json.loads(text_content)
                                             formatted_json = json.dumps(parsed_json, indent=2, ensure_ascii=False)
-                                            content = f"```json\n{formatted_json}\n```"
+                                            content = f"Réponse JSON :\r\n ```json\n{formatted_json}\n```"
                                         except:
                                             content = f"```\n{text_content}\n```"
                                         
@@ -95,8 +95,7 @@ with gr.Blocks() as demo:
                                         # Sinon, utiliser le texte normal
                                         history.append({
                                             "role": "assistant", 
-                                            "content": f"{text_content}", 
-                                            "metadata": {"title": "📊 Résultat outil"}
+                                            "content": f"{text_content}"
                                         })
                                 else:
                                     # Autres types de nœuds
@@ -104,7 +103,7 @@ with gr.Blocks() as demo:
                                 
                                 yield history
 
-        # Remove metadata for the last message
+        # Remove metadata for the final message
         history[-1]["metadata"] = None
         yield history
 
