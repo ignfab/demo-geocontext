@@ -32,6 +32,7 @@ with gr.Blocks() as demo:
     def user(user_message, history: list):
         return "", history + [{"role": "user", "content": user_message}]
 
+
     async def bot(history: list):
         user_message = history[-1]['content']
         
