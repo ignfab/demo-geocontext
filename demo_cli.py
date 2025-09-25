@@ -20,6 +20,8 @@ async def stream_graph_updates(user_input: str):
 
 async def main():
     try:
+        # loop prompt until user wants to exit
+        print("Welcome to the demo-geocontext CLI! Type a message and press Enter to send it. Use 'quit', 'exit', or 'q' to exit.")
         user_input = input("User: ")
         if user_input.lower() in ["quit", "exit", "q"]:
             print("Goodbye!")

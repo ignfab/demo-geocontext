@@ -1,15 +1,17 @@
 [project]
 name = "demo-geocontext"
 version = "0.1.0"
-description = "Add your description here"
+description = "Interactive demo for mborne/geocontext"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "asyncio>=4.0.0",
     "gradio>=5.47.0",
     "langchain-community>=0.3.29",
+    "langchain-google-vertexai>=2.1.2",
     "langchain-mcp-adapters>=0.1.10",
+    "langchain-ollama>=0.3.8",
     "langchain[anthropic,community]>=0.3.27",
     "langgraph[anthropic]>=0.6.7",
-    "plotly>=6.3.0"
+    "plotly>=6.3.0",
 ]

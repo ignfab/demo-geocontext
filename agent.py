@@ -6,9 +6,16 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from langchain.chat_models import init_chat_model
 from langgraph.checkpoint.memory import InMemorySaver
 
+# retreive model name from environment variable or use default
 MODEL_NAME = os.getenv("MODEL_NAME", "anthropic:claude-3-5-sonnet-latest")
+# ensure that the required environment variable is set for anthropic models
+if MODEL_NAME.startswith("anthropic:"):
+    if os.getenv("ANTHROPIC_API_KEY", None) is None:
+        raise ValueError("ANTHROPIC_API_KEY environment variable is required for anthropic models")
 
 async def build_graph():
+    """Build the processing graph with model and tools"""
+    
     print(f"Create graph using model: {MODEL_NAME}")
     model = init_chat_model(MODEL_NAME)
 
@@ -38,6 +45,8 @@ async def build_graph():
         tools_condition,
     )
     builder.add_edge("tools", "call_model")
+    
+    # build the graph with short term memory
     memory = InMemorySaver()
     graph = builder.compile(checkpointer=memory)
     print("Graph created successfully")

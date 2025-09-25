@@ -1,17 +1,48 @@
-
 # demo-geocontext
+
+Interactive demo for [mborne/geocontext](https://github.com/mborne/geocontext#readme) based on [Gradio - ChatBot](https://www.gradio.app/guides/creating-a-chatbot-fast) and  [LangGraph](https://langchain-ai.github.io/langgraph/agents/mcp/#use-mcp).
+
+## Screenshot
+
+![Screenshot](img/screenshot.png)
 
 ## Parameters
 
-| Name        | Description                | Default     |
-|-------------|----------------------------|-------------|
-| REDIS_HOST  | Redis server hostname      | "localhost" |
-| REDIS_PORT  | Redis server port          | 6379        |
+| Name              | Description                                                                                                                          | Default                              |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ |
+| MODEL_NAME        | The name of the model (see [LangGraph - create_react_agent](https://langchain-ai.github.io/langgraph/agents/models/#use-in-an-agent) | "anthropic:claude-3-5-sonnet-latest" |
+| ANTHROPIC_API_KEY | Required from `anthropic:*` models                                                                                                   |                                      |
 
 ## Usage
 
+With uv on Linux :
+
 ```bash
-# http://localhost:8000/docs
-uv run uvicorn main:app --host 0.0.0.0 --port 8000
+# download repository
+git clone https://github.com/mborne/demo-geocontext
+cd demo-geocontext
+
+# configure model model and credentials
+export MODEL_NAME="anthropic:claude-3-5-sonnet-latest"
+export ANTHROPIC_API_KEY="YourApiKey"
+
+# start gradio demo on http://localhost:7860/ :
+uv run demo_gradio.py
 ```
 
+With uv on Windows, adapt model and credentials configuration as follow :
+
+```powershell
+$env:MODEL_NAME="ollama:mistral:7b"
+$env:ANTHROPIC_API_KEY="YourApiKey"
+```
+
+
+## Credits
+
+* [gradio - Chatbot](https://www.gradio.app/docs/gradio/chatbot)
+* [LangGraph](https://langchain-ai.github.io/langgraph/agents/mcp/#use-mcp) and [langchain-mcp-adapters](https://github.com/langchain-ai/langchain-mcp-adapters#readme)
+
+## License
+
+[MIT](./LICENSE)

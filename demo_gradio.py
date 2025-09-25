@@ -2,13 +2,12 @@ import asyncio
 import json
 
 import gradio as gr
-import random
-import time
 
 from agent import build_graph
 
 graph = asyncio.run(build_graph())
 
+# required to invoke the graph with short term memory
 config = {"configurable": {"thread_id": "thread-1"}}
 
 def is_valid_json(text):
@@ -24,7 +23,8 @@ with gr.Blocks() as demo:
         type="messages", 
         label="demo-geocontext",
         show_copy_button=True,
-        show_copy_all_button=True
+        show_copy_all_button=True,
+        resizable=True,
     )
     msg = gr.Textbox()
     clear = gr.Button("Clear")
