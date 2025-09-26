@@ -20,12 +20,19 @@ async def build_graph():
     model = init_chat_model(MODEL_NAME)
 
     print("Load tools from MCP servers...")
+    
+    # Préparer les variables d'environnement pour le proxy
+    env = os.environ.copy()
+    proxy_vars = ["HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"]
+    proxy_env = {var: env[var] for var in proxy_vars if var in env}
+    
     client = MultiServerMCPClient(
         {
             "geocontext": {
                 "command": "npx",
                 "args": ["-y", "@mborne/geocontext"],
                 "transport": "stdio",
+                "env": proxy_env if proxy_env else None
             }
         }
     )
