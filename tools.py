@@ -1,26 +1,34 @@
-import folium
-import requests
-
 from langchain_core.tools import tool
 
 @tool
-def create_map(lon: float, lat: float) -> str:
-    """Create a map centered at the given longitude and latitude and return it as an HTML string.
+def create_map(
+    lon: float = None, lat: float = None, zoom: int = None,
+    geojson_url: str = "", background: str = "osm"
+) -> str:
+    """Create a map and return it as an HTML string.
 
     Args:
-        lon: center longitude
-        lat: center latitude
+        lon: center longitude (optional if geojson_url is provided)
+        lat: center latitude (optional if geojson_url is provided)
+        zoom: zoom level (optional, will auto-fit if geojson_url is provided and zoom is not specified)
+        geojson_url: URL to a GeoJSON file to overlay on the map (optional)
+        background: background layer name (default: "osm", can also use "gpf:GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2" for IGN France)
     """
+    # Construire les attributs optionnels
+    lon_attr = f'lon="{lon}"' if lon is not None else ""
+    lat_attr = f'lat="{lat}"' if lat is not None else ""
+    zoom_attr = f'zoom="{zoom}"' if zoom is not None else ""
+    data_url_attr = f'data-url="{geojson_url}"' if geojson_url else ""
     
-    return f"""
+    # Utiliser fit-bounds si lon, lat ou zoom ne sont pas définis et qu'il y a des données
+    fit_bounds_attr = ""
+    if geojson_url and (lon is None or lat is None or zoom is None):
+        fit_bounds_attr = 'fit-bounds="true"'
+    
+    # Construire la liste des attributs non vides
+    attributes = [attr for attr in [lon_attr, lat_attr, zoom_attr, f'background="{background}"', data_url_attr, fit_bounds_attr] if attr]
+    attributes_str = " ".join(attributes)
 
-<p>Carte centrée sur (lon: {lon}, lat: {lat})</p>
-<ol-map lon="{lon}" lat="{lat}" zoom="12" style="width: 100%; height: 400px;">
-    <ol-layer-openstreetmap></ol-layer-openstreetmap>
-    <ol-layer-vector>
-        <ol-marker-icon src="https://openlayers.org/en/latest/examples/data/icon.png" lon="{lon}" lat="{lat}" />
-    </ol-layer-vector>    
-</ol-map>
-    """
+    return f"<ol-simple-map {attributes_str}></ol-simple-map>"
 
 

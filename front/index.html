@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpenLayers Simple Map - Configuration des styles</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .example {
+        margin: 20px 0;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      h1, h2 {
+        color: #333;
+      }
+      .controls {
+        margin: 10px 0;
+      }
+      button {
+        margin: 5px;
+        padding: 8px 16px;
+        background: #007cba;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #005a87;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>OpenLayers Simple Map - Configuration des styles</h1>
+      
+      <div class="example">
+        <h2>Exemple 1 : Carte avec fond OSM</h2>
+        <ol-simple-map 
+          data-url="https://france-geojson.gregoiredavid.fr/repo/departements.geojson"
+          fit-bounds="true"
+        >
+        </ol-simple-map>
+      </div>
+      
+      <div class="example">
+        <h2>Exemple 2 : Carte avec fond IGN</h2>
+        <ol-simple-map 
+          lon="2.294481" 
+          lat="48.858370" 
+          zoom="7"
+          background="gpf:GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2"
+          data-url="https://france-geojson.gregoiredavid.fr/repo/departements.geojson"
+        >
+        </ol-simple-map>
+      </div>
+
+    </div>
+
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
