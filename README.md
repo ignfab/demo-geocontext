@@ -6,12 +6,21 @@ Interactive demo for [mborne/geocontext](https://github.com/mborne/geocontext#re
 
 ![Screenshot](img/screenshot.png)
 
+## Requirements
+
+* [uv](https://github.com/astral-sh/uv#installation) ( Python package and project manager )
+* [NodeJS (npx)](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+
+
 ## Parameters
 
 | Name              | Description                                                                                                                          | Default                              |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ |
 | MODEL_NAME        | The name of the model (see [LangGraph - create_react_agent](https://langchain-ai.github.io/langgraph/agents/models/#use-in-an-agent) | "anthropic:claude-3-5-sonnet-latest" |
 | ANTHROPIC_API_KEY | Required from `anthropic:*` models                                                                                                   |                                      |
+
+> Note that "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY" are supported if you have to use a corporate proxy
+
 
 ## Usage
 
