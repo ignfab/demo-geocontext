@@ -6,6 +6,8 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from langchain.chat_models import init_chat_model
 from langgraph.checkpoint.memory import InMemorySaver
 
+from tools import create_map
+
 # retreive model name from environment variable or use default
 MODEL_NAME = os.getenv("MODEL_NAME", "anthropic:claude-3-5-sonnet-latest")
 # ensure that the required environment variable is set for anthropic models
@@ -38,6 +40,9 @@ async def build_graph():
     )
     tools = await client.get_tools()
     print(f"Loaded {len(tools)} tools")
+
+    print("Add demo specific tools...")
+    tools.append(create_map)
 
     async def call_model(state: MessagesState):
         response = await model.bind_tools(tools).ainvoke(state["messages"])

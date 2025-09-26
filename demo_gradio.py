@@ -1,3 +1,7 @@
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+import uvicorn
+
 import asyncio
 import json
 
@@ -18,13 +22,25 @@ def is_valid_json(text):
     except (json.JSONDecodeError, TypeError):
         return False
 
-with gr.Blocks() as demo:
+
+# https://openlayers-elements.netlify.app/
+head = f"""
+<script type="module" src="https://unpkg.com/@openlayers-elements/bundle/dist/ol-map.js"></script>
+<script type="module" src="https://unpkg.com/@openlayers-elements/bundle/dist/ol-layer-openstreetmap.js"></script>
+<script type="module" src="https://unpkg.com/@openlayers-elements/bundle/dist/ol-layer-geojson.js"></script>
+<script type="module" src="https://unpkg.com/@openlayers-elements/bundle/dist/ol-layer-vector.js"></script>
+<script type="module" src="https://unpkg.com/@openlayers-elements/bundle/dist/ol-marker-icon.js"></script>
+"""
+
+
+with gr.Blocks(head=head) as demo:
     chatbot = gr.Chatbot(
         type="messages", 
         label="demo-geocontext",
         show_copy_button=True,
         show_copy_all_button=True,
         resizable=True,
+        sanitize_html=False,
     )
     msg = gr.Textbox()
     clear = gr.Button("Clear")
@@ -107,11 +123,19 @@ with gr.Blocks() as demo:
         history[-1]["metadata"] = None
         yield history
 
+
     msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
         bot, chatbot, chatbot
     )
     clear.click(lambda: None, None, chatbot, queue=False)
 
+
+
+app = FastAPI()
+
+#app.mount("/front", StaticFiles(directory="front"), name="front")
+app = gr.mount_gradio_app(app, demo, path="/")
+
 if __name__ == "__main__":
-    print("Demo is running on http://localhost:7860")
-    demo.launch(server_name="0.0.0.0", server_port=7860, share=False)
+    print("Demo is running on http://localhost:8000")
+    uvicorn.run(app, host="0.0.0.0", port=8000)

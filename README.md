@@ -51,6 +51,9 @@ $env:ANTHROPIC_API_KEY="YourApiKey"
 
 * [gradio - Chatbot](https://www.gradio.app/docs/gradio/chatbot)
 * [LangGraph](https://langchain-ai.github.io/langgraph/agents/mcp/#use-mcp) and [langchain-mcp-adapters](https://github.com/langchain-ai/langchain-mcp-adapters#readme)
+* [Plotting MCP Server](https://github.com/StacklokLabs/plotting-mcp)
+
+* https://openlayers-elements.netlify.app/
 
 ## License
 
