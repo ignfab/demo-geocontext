@@ -1,3 +1,8 @@
+import os
+import logging
+logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
+logger = logging.getLogger("demo_gradio")
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 import uvicorn
@@ -15,8 +20,10 @@ graph = asyncio.run(build_graph())
 def to_gradio_message(node_name, last_message):
     """Convertit un message en format compatible avec Gradio"""
     
-    print(f"to_gradio_message({node_name} - {type(last_message)})")
+    logger.debug(f"to_gradio_message({node_name} - {type(last_message)})")
     if not hasattr(last_message, 'content') or not last_message.content:
+        logger.warning(f"to_gradio_message({node_name} - {type(last_message)}) - no content")
+        logger.warning(f"last_message: {last_message.pretty_print()}")
         return None
 
     # Extraire le contenu textuel
@@ -35,6 +42,10 @@ def to_gradio_message(node_name, last_message):
                 tool_args = block.get('input', {})
                 text_parts.append(f"🔧 Appel outil: {tool_name}({tool_args})")
         text_content = "\n".join(text_parts)
+    else:
+        logger.warning(f"to_gradio_message({node_name} - {type(last_message)}) - unknown content type")
+        logger.warning(f"last_message: {last_message.pretty_print()}")
+        return None
 
     # Ajouter un nouveau message pour chaque type d'événement
     if node_name == "call_model":
@@ -79,7 +90,7 @@ def to_gradio_message(node_name, last_message):
 # https://openlayers-elements.netlify.app/
 head = f"""
 <script src="/front/demo-geocontext.min.js"></script>
-<link rel="stylesheet" src="/front/demo-geocontext.css"></link>
+<link rel="stylesheet" href="/front/demo-geocontext.css"></link>
 """
 
 
@@ -101,15 +112,19 @@ with gr.Blocks(head=head) as demo:
         if not thread_id:
             thread_id = f"thread-{uuid.uuid4().hex}"
 
-        return "", thread_id, history + [{"role": "user", "content": user_message}]
+        if user_message is None or user_message.strip() == "":
+            return "", thread_id, history
 
-    async def bot(history: list):
+        return "", thread_id, history + [{"role": "user", "content": user_message.strip()}]
+
+    async def bot(history: list, thread_id: str):
         user_message = history[-1]['content']
-        
+
         # required to invoke the graph with short term memory
-        config = {"configurable": {"thread_id": "thread-1"}}
+        config = {"configurable": {"thread_id": thread_id}}
+        logging.info(f"bot({thread_id} - {user_message})")
         async for event in graph.astream({"messages": [{"role": "user", "content": user_message}]}, config=config):
-            print("Event:", event)
+            logger.debug("Event:", event)
             
             # Traiter les différents types d'événements
             for node_name, node_data in event.items():
@@ -120,14 +135,14 @@ with gr.Blocks(head=head) as demo:
                         gradio_message = to_gradio_message(node_name, last_message)
                         if gradio_message is not None:
                             history.append(gradio_message)
-                            yield history
+                            yield history, thread_id
 
         # Remove metadata for the final message
         history[-1]["metadata"] = None
-        yield history
+        yield history, thread_id
 
     msg.submit(user, [msg, thread_state, chatbot], [msg, thread_state, chatbot], queue=False).then(
-        bot, chatbot, chatbot
+        bot, inputs=[chatbot,thread_state], outputs=[chatbot,thread_state]
     )
     clear.click(lambda: None, None, chatbot, queue=False)
 
@@ -139,7 +154,16 @@ app.mount("/front", StaticFiles(directory="front/dist"), name="front")
 app = gr.mount_gradio_app(app, demo, path="/")
 
 if __name__ == "__main__":
-    print("Demo is running on http://localhost:8000")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    logging_level = os.getenv("LOGGING_LEVEL", "INFO")
+    logging.basicConfig(level=logging.getLevelName(logging_level))
+    logging.info("Demo is running on http://localhost:8000")
+    uvicorn.run(
+        app, 
+        host="0.0.0.0", 
+        port=8000,
+        # Configuration pour un arrêt plus rapide
+        timeout_keep_alive=5,  # Ferme les connexions keep-alive après 5 secondes
+        timeout_graceful_shutdown=10,  # Timeout gracieux de 10 secondes
+    )
 
 

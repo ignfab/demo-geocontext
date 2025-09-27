@@ -1,3 +1,8 @@
+import os
+import logging
+logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
+logger = logging.getLogger("demo_gradio")
+
 import asyncio
 
 from agent import build_graph

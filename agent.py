@@ -1,4 +1,6 @@
 import os
+import logging
+logger = logging.getLogger(__name__)
 
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.graph import StateGraph, MessagesState, START
@@ -18,10 +20,10 @@ if MODEL_NAME.startswith("anthropic:"):
 async def build_graph():
     """Build the processing graph with model and tools"""
     
-    print(f"Create graph using model: {MODEL_NAME}")
+    logger.info(f"Create graph using model: {MODEL_NAME}")
     model = init_chat_model(MODEL_NAME)
 
-    print("Load tools from MCP servers...")
+    logger.info("Load tools from MCP servers...")
     
     # Préparer les variables d'environnement pour le proxy
     env = os.environ.copy()
@@ -39,9 +41,9 @@ async def build_graph():
         }
     )
     tools = await client.get_tools()
-    print(f"Loaded {len(tools)} tools")
+    logger.info(f"Loaded {len(tools)} tools")
 
-    print("Add demo specific tools...")
+    logger.info("Add demo specific tools...")
     tools.append(create_map)
 
     async def call_model(state: MessagesState):
@@ -61,6 +63,6 @@ async def build_graph():
     # build the graph with short term memory
     memory = InMemorySaver()
     graph = builder.compile(checkpointer=memory)
-    print("Graph created successfully")
+    logger.info("Graph created successfully")
     return graph
 
