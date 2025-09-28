@@ -1,5 +1,4 @@
 import os
-import asyncio
 import uuid
 import json
 import logging
@@ -8,12 +7,12 @@ logger = logging.getLogger("demo_gradio")
 
 import uvicorn
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 import gradio as gr
 
-from agent import build_graph
+from agent import build_graph, get_messages
 from langgraph.checkpoint.redis.aio import AsyncRedisSaver
 
 from db import redis_client, get_thread_ids, get_redis_checkpointer
@@ -127,6 +126,45 @@ def to_gradio_message(node_name, last_message):
         }
 
 
+async def load_conversation_history(thread_id: str):
+    """Charge l'historique de la conversation depuis Redis pour un thread_id donné"""
+    global graph
+    
+    if not graph or not thread_id:
+        return []
+    
+    history = []
+    try:
+        async for message in get_messages(graph, thread_id):
+            logger.debug(f"Traitement message: type={getattr(message, 'type', 'unknown')}, content={getattr(message, 'content', 'no content')}")
+            
+            if hasattr(message, 'type'):
+                if message.type == 'human':
+                    # Message utilisateur
+                    content = message.content if isinstance(message.content, str) else str(message.content)
+                    history.append({"role": "user", "content": content})
+                elif message.type == 'ai':
+                    # Message assistant - utiliser la fonction existante de conversion
+                    gradio_message = to_gradio_message("call_model", message)
+                    if gradio_message:
+                        history.append(gradio_message)
+                elif message.type == 'tool':
+                    # Message d'outil - utiliser la fonction existante de conversion
+                    gradio_message = to_gradio_message("tools", message)
+                    if gradio_message:
+                        history.append(gradio_message)
+                else:
+                    logger.debug(f"Type de message non géré: {message.type}")
+            else:
+                logger.debug(f"Message sans attribut 'type': {type(message)}")
+    except Exception as e:
+        logger.error(f"Erreur lors du chargement de l'historique pour {thread_id}: {e}")
+        raise
+    
+    logger.info(f"Historique chargé: {len(history)} messages pour thread_id={thread_id}")
+    return history
+
+
 # https://openlayers-elements.netlify.app/
 head = f"""
 <script src="/front/demo-geocontext.min.js"></script>
@@ -144,13 +182,29 @@ with gr.Blocks(head=head) as demo:
         sanitize_html=False,
     )
     msg = gr.Textbox()
-    clear = gr.Button("Clear")
     thread_state = gr.State(None)
     
-    def user(user_message: str, thread_id: str | None, history: list):
-        # première interaction → on attribue un identifiant de session
+    async def initialize_chat(request: gr.Request):
+        """Initialise le chat avec l'historique existant si disponible"""
+        thread_id = request.query_params.get('thread_id')
+        if thread_id:
+            try:
+                history = await load_conversation_history(thread_id)
+                logger.info(f"Historique chargé pour thread_id={thread_id}: {len(history)} messages")
+                return history, thread_id
+            except Exception as e:
+                logger.error(f"Erreur lors du chargement de l'historique pour {thread_id}: {e}")
+                return [], thread_id
+        logger.info("Nouveau thread - pas d'historique à charger")
+        return [], None
+    
+    
+    def user(user_message: str, thread_id: str | None, history: list, request: gr.Request):
+        # Récupérer le thread_id depuis les paramètres de l'URL
+        thread_id = request.query_params.get('thread_id')
+        
         if not thread_id:
-            thread_id = f"thread-{uuid.uuid4().hex}"
+            raise ValueError("thread_id manquant dans l'URL")
 
         if user_message is None or user_message.strip() == "":
             return "", thread_id, history
@@ -183,13 +237,21 @@ with gr.Blocks(head=head) as demo:
         history[-1]["metadata"] = None
         yield history, thread_id
 
+    
+    # Charger l'historique au démarrage
+    demo.load(initialize_chat, inputs=[], outputs=[chatbot, thread_state])
+    
     msg.submit(user, [msg, thread_state, chatbot], [msg, thread_state, chatbot], queue=False).then(
         bot, inputs=[chatbot,thread_state], outputs=[chatbot,thread_state]
     )
-    clear.click(lambda: None, None, chatbot, queue=False)
 
 
-app = gr.mount_gradio_app(app, demo, path="/")
+@app.get("/")
+def redirect_to_gradio():
+    thread_id = f"thread-{uuid.uuid4().hex}"
+    return RedirectResponse(url=f"/chatbot?thread_id={thread_id}")
+
+app = gr.mount_gradio_app(app, demo, path="/chatbot")
 
 if __name__ == "__main__":
     logging.info("Demo is running on http://localhost:8000")
