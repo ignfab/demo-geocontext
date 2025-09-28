@@ -1,7 +1,7 @@
 import os
 import logging
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
-logger = logging.getLogger("demo_gradio")
+logger = logging.getLogger("demo_cli")
 
 import asyncio
 

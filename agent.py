@@ -4,6 +4,7 @@ logger = logging.getLogger(__name__)
 
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.graph import StateGraph, MessagesState, START
+from langgraph.graph.state import CompiledStateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
 from langchain.chat_models import init_chat_model
 from langgraph.checkpoint.memory import InMemorySaver
@@ -17,11 +18,13 @@ if MODEL_NAME.startswith("anthropic:"):
     if os.getenv("ANTHROPIC_API_KEY", None) is None:
         raise ValueError("ANTHROPIC_API_KEY environment variable is required for anthropic models")
 
-async def build_graph():
+
+logger.info(f"Create graph using model: {MODEL_NAME}")
+model = init_chat_model(MODEL_NAME)
+
+
+async def build_graph(checkpointer=InMemorySaver()) -> CompiledStateGraph:
     """Build the processing graph with model and tools"""
-    
-    logger.info(f"Create graph using model: {MODEL_NAME}")
-    model = init_chat_model(MODEL_NAME)
 
     logger.info("Load tools from MCP servers...")
     
@@ -35,6 +38,12 @@ async def build_graph():
             "geocontext": {
                 "command": "npx",
                 "args": ["-y", "@mborne/geocontext"],
+                "transport": "stdio",
+                "env": proxy_env if proxy_env else None
+            },
+            "time": {
+                "command": "uvx",
+                "args": ["mcp-server-time"],
                 "transport": "stdio",
                 "env": proxy_env if proxy_env else None
             }
@@ -61,8 +70,19 @@ async def build_graph():
     builder.add_edge("tools", "call_model")
     
     # build the graph with short term memory
-    memory = InMemorySaver()
-    graph = builder.compile(checkpointer=memory)
+    graph = builder.compile(checkpointer=checkpointer)
     logger.info("Graph created successfully")
     return graph
 
+
+
+async def get_messages(graph: CompiledStateGraph, thread_id: str):
+    """Get the history of a thread"""
+
+    config = {"configurable": {"thread_id": thread_id}}
+    state = await graph.aget_state(config)
+
+    if 'messages' in state.values:
+        messages = state.values['messages']
+        for message in messages:
+            yield message

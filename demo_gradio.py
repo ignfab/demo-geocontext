@@ -1,21 +1,61 @@
 import os
+import asyncio
+import uuid
+import json
 import logging
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 logger = logging.getLogger("demo_gradio")
 
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 import uvicorn
-
-import uuid
-import asyncio
-import json
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 import gradio as gr
 
 from agent import build_graph
+from langgraph.checkpoint.redis.aio import AsyncRedisSaver
 
-graph = asyncio.run(build_graph())
+from db import redis_client, get_thread_ids, get_redis_checkpointer
+
+graph = None
+
+async def lifespan(app: FastAPI):
+    global graph
+
+    logger.info("Starting up...")
+    checkpointer = await get_redis_checkpointer()
+    graph = await build_graph(checkpointer=checkpointer)
+    yield
+    logger.info("Shutting down...")
+
+
+app = FastAPI(lifespan=lifespan)
+
+@app.get('/health')
+async def health():
+    return {"status": "ok", "message": "app is running"}
+
+@app.get('/health/redis')
+async def health_redis():
+    try:
+        await redis_client.ping()
+        return {"status": "ok", "message": "connected"} 
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "message": "redis is disconnected"},
+        )
+
+@app.get('/admin/threads')
+async def admin_thread_ids():
+    global graph
+    thread_ids = await get_thread_ids(graph.checkpointer)
+    return {"status": "ok", "thread_ids": thread_ids}
+
+
+app.mount("/front", StaticFiles(directory="front/dist"), name="front")
+
 
 def to_gradio_message(node_name, last_message):
     """Convertit un message en format compatible avec Gradio"""
@@ -118,6 +158,8 @@ with gr.Blocks(head=head) as demo:
         return "", thread_id, history + [{"role": "user", "content": user_message.strip()}]
 
     async def bot(history: list, thread_id: str):
+        global graph
+        
         user_message = history[-1]['content']
 
         # required to invoke the graph with short term memory
@@ -147,15 +189,9 @@ with gr.Blocks(head=head) as demo:
     clear.click(lambda: None, None, chatbot, queue=False)
 
 
-
-app = FastAPI()
-
-app.mount("/front", StaticFiles(directory="front/dist"), name="front")
 app = gr.mount_gradio_app(app, demo, path="/")
 
 if __name__ == "__main__":
-    logging_level = os.getenv("LOGGING_LEVEL", "INFO")
-    logging.basicConfig(level=logging.getLevelName(logging_level))
     logging.info("Demo is running on http://localhost:8000")
     uvicorn.run(
         app, 
