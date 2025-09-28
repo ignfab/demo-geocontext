@@ -13,6 +13,8 @@ def create_map(
         zoom: zoom level (optional, will auto-fit if geojson_url is provided and zoom is not specified)
         geojson_url: URL to a GeoJSON file to overlay on the map (optional)
         background: background layer name (default: "osm", can also use "gpf:GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2" for IGN France)
+
+    Important: Don't create a map unless the user asks for it.
     """
     # Construire les attributs optionnels
     lon_attr = f'lon="{lon}"' if lon is not None else ""
