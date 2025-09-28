@@ -106,7 +106,16 @@ def to_gradio_message(node_name, last_message):
         try:
             parsed_json = json.loads(text_content)
             formatted_json = json.dumps(parsed_json, indent=2, ensure_ascii=False)
-            content = f"Réponse JSON :\r\n ```json\n{formatted_json}\n```"
+            content = f"""
+<details>
+<summary>📊 Réponse JSON</summary>
+
+```json
+{formatted_json}
+```
+</details>
+                """
+
             return {
                 "role": "assistant", 
                 "content": f"{content}", 
