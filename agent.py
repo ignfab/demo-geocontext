@@ -70,6 +70,7 @@ async def build_graph(checkpointer=InMemorySaver()) -> CompiledStateGraph:
     builder.add_edge("tools", "call_model")
     
     # build the graph with short term memory
+    logger.info(f"Build graph (checkpointer: {type(checkpointer)})")
     graph = builder.compile(checkpointer=checkpointer)
     logger.info("Graph created successfully")
     return graph

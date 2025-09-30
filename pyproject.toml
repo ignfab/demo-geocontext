@@ -16,6 +16,5 @@ dependencies = [
     "langgraph-checkpoint-postgres>=2.0.23",
     "langgraph-checkpoint-redis>=0.1.1",
     "langgraph[anthropic]>=0.6.7",
-    "psycopg2>=2.9.10",
     "uvicorn>=0.37.0",
 ]

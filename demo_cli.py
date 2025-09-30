@@ -1,14 +1,14 @@
 import os
+import asyncio
 import logging
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 logger = logging.getLogger("demo_cli")
 
-import asyncio
-
 from agent import build_graph
 
 async def stream_graph_updates(graph, user_input: str):
-    
+    """Process user message by printing the result"""
+
     config = {"configurable": {"thread_id": "thread-1"}}
     
     async for event in graph.astream({"messages": [{"role": "user", "content": user_input}]}, config=config):

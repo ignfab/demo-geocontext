@@ -13,7 +13,6 @@ from fastapi.staticfiles import StaticFiles
 import gradio as gr
 
 from agent import build_graph, get_messages
-from langgraph.checkpoint.redis.aio import AsyncRedisSaver
 
 from db import redis_client, get_thread_ids, get_redis_checkpointer
 
@@ -23,7 +22,10 @@ async def lifespan(app: FastAPI):
     global graph
 
     logger.info("Starting up...")
+
+    logger.info("Create checkpointer...")
     checkpointer = await get_redis_checkpointer()
+    logger.info("Build graph...")
     graph = await build_graph(checkpointer=checkpointer)
     yield
     logger.info("Shutting down...")
@@ -179,7 +181,6 @@ head = f"""
 <script src="/front/demo-geocontext.min.js"></script>
 <link rel="stylesheet" href="/front/demo-geocontext.css"></link>
 """
-
 
 with gr.Blocks(head=head) as demo:
     chatbot = gr.Chatbot(

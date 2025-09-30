@@ -11,7 +11,6 @@ Interactive demo for [mborne/geocontext](https://github.com/mborne/geocontext#re
 * [uv](https://github.com/astral-sh/uv#installation) ( Python package and project manager )
 * [NodeJS (npx)](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 
-
 ## Parameters
 
 | Name              | Description                                                                                                                          | Default                              |
@@ -20,7 +19,6 @@ Interactive demo for [mborne/geocontext](https://github.com/mborne/geocontext#re
 | ANTHROPIC_API_KEY | Required from `anthropic:*` models                                                                                                   |                                      |
 
 > Note that "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY" are supported if you have to use a corporate proxy
-
 
 ## Usage
 
@@ -46,14 +44,12 @@ $env:MODEL_NAME="ollama:mistral:7b"
 $env:ANTHROPIC_API_KEY="YourApiKey"
 ```
 
-
 ## Credits
 
 * [gradio - Chatbot](https://www.gradio.app/docs/gradio/chatbot)
-* [LangGraph](https://langchain-ai.github.io/langgraph/agents/mcp/#use-mcp) and [langchain-mcp-adapters](https://github.com/langchain-ai/langchain-mcp-adapters#readme)
-* [Plotting MCP Server](https://github.com/StacklokLabs/plotting-mcp)
-
-* https://openlayers-elements.netlify.app/
+* [LangGraph](https://langchain-ai.github.io/langgraph/agents/mcp/#use-mcp)
+* [langchain-mcp-adapters](https://github.com/langchain-ai/langchain-mcp-adapters#readme)
+* [mborne/geocontext](https://github.com/mborne/geocontext#readme)
 
 ## License
 

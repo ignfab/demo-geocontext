@@ -30,4 +30,7 @@ npm run build
 
 ## Alternatives
 
-See [@openlayers-elements/maps](https://www.webcomponents.org/element/@openlayers-elements/maps)
+See also :
+
+* [MapML](https://maps4html.org/web-map-doc/fr/docs/)
+* [@openlayers-elements/maps](https://www.webcomponents.org/element/@openlayers-elements/maps)
