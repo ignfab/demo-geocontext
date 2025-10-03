@@ -182,7 +182,12 @@ head = f"""
 <link rel="stylesheet" href="/front/demo-geocontext.css"></link>
 """
 
+from agent import MODEL_NAME
+
 with gr.Blocks(head=head) as demo:
+    explication = gr.Markdown(
+        value=f"Vous êtes sur un démonstrateur technique permettant de tester le MCP [mborne/geocontext](https://github.com/mborne/geocontext#fonctionnalit%C3%A9s) avec le modèle '{MODEL_NAME}'."
+    )
     chatbot = gr.Chatbot(
         type="messages", 
         label="demo-geocontext",
@@ -191,7 +196,6 @@ with gr.Blocks(head=head) as demo:
         resizable=True,
         sanitize_html=False,
     )
-    explication = gr.Markdown(value='Ceci est un démonstrateur')
     msg = gr.Textbox()
     thread_state = gr.State(None)
     

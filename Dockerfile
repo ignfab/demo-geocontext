@@ -18,7 +18,7 @@ RUN apt-get update \
 
 WORKDIR /app
 COPY . .
-RUN uv sync --no-cache
+RUN uv sync --no-cache --no-dev
 
 EXPOSE 8000
 CMD ["uv", "run", "demo_gradio.py"]
