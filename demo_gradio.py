@@ -191,6 +191,7 @@ with gr.Blocks(head=head) as demo:
         resizable=True,
         sanitize_html=False,
     )
+    explication = gr.Markdown(value='Ceci est un démonstrateur')
     msg = gr.Textbox()
     thread_state = gr.State(None)
     

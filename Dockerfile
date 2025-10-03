@@ -1,4 +1,4 @@
-FROM ubuntu:24.04 AS builder
+FROM ubuntu:24.04 AS base
 
 # Install uv / uvx
 ENV UV_INSTALL_DIR=/usr/local/bin
@@ -18,7 +18,7 @@ RUN apt-get update \
 
 WORKDIR /app
 COPY . .
-RUN uv sync
+RUN uv sync --no-cache
 
 EXPOSE 8000
 CMD ["uv", "run", "demo_gradio.py"]
