@@ -14,7 +14,7 @@ import gradio as gr
 
 from agent import build_graph, get_messages
 
-from db import redis_client, get_thread_ids, get_redis_checkpointer
+from db import redis_client, get_checkpointer, get_thread_ids
 
 graph = None
 
@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI):
     logger.info("Starting up...")
 
     logger.info("Create checkpointer...")
-    checkpointer = await get_redis_checkpointer()
+    checkpointer = await get_checkpointer()
     logger.info("Build graph...")
     graph = await build_graph(checkpointer=checkpointer)
     yield
@@ -54,9 +54,7 @@ async def admin_thread_ids():
     thread_ids = await get_thread_ids(graph.checkpointer)
     return {"status": "ok", "thread_ids": thread_ids}
 
-
 app.mount("/front", StaticFiles(directory="front/dist"), name="front")
-
 
 def to_gradio_message(node_name, last_message):
     """Convertit un message en format compatible avec Gradio"""

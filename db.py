@@ -3,17 +3,27 @@ logger = logging.getLogger(__name__)
 
 import os
 
+from langgraph.checkpoint.memory import InMemorySaver
 from redis.asyncio import Redis
 from langgraph.checkpoint.redis.aio import AsyncRedisSaver
 
+def str2bool(v: str) -> bool :
+  return str(v).lower() in ("yes", "true", "t", "1")
+
+REDIS_ENABLED = str2bool(os.getenv('REDIS_ENABLED', False))
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 REDIS_DB = int(os.getenv("REDIS_DB", 0))
 
-redis_client = Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
+redis_client = None
+if REDIS_ENABLED:
+    redis_client = Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 
-async def get_redis_checkpointer() -> AsyncRedisSaver:
-    """Create a redis checkpointer"""
+async def get_checkpointer() -> AsyncRedisSaver|InMemorySaver:
+    """Create a checkpointer for short term memory (history)"""
+
+    if redis_client is None:
+        return InMemorySaver()
 
     logger.debug("check redis connexion...")
     try:

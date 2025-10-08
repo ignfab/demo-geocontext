@@ -39,7 +39,7 @@ async def build_graph(checkpointer=InMemorySaver()) -> CompiledStateGraph:
                 "command": "npx",
                 "args": ["-y", "@mborne/geocontext"],
                 "transport": "stdio",
-                "env": proxy_env if proxy_env else None
+                "env": {**proxy_env, "LOG_LEVEL": "error"} if proxy_env else {"LOG_LEVEL": "error"}
             },
             "time": {
                 "command": "uvx",

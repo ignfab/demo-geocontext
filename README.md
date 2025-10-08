@@ -17,12 +17,16 @@ Interactive demo for [mborne/geocontext](https://github.com/mborne/geocontext#re
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ |
 | MODEL_NAME        | The name of the model (see [LangGraph - create_react_agent](https://langchain-ai.github.io/langgraph/agents/models/#use-in-an-agent) | "anthropic:claude-3-5-sonnet-latest" |
 | ANTHROPIC_API_KEY | Required from `anthropic:*` models                                                                                                   |                                      |
+| REDIS_ENABLED     | Use redis for short term memory                                                                                                      | False                                |
+| REDIS_HOST        | The Redis host                                                                                                                       | localhost                            |
+| REDIS_PORT        | The Redis port                                                                                                                       | 6379                                 |
+| REDIS_DB          | The Redis database                                                                                                                   | 0                                    |
 
-> Note that "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY" are supported if you have to use a corporate proxy
+> Note that "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY" are supported if you have to use a corporate proxy.
 
 ## Usage
 
-With uv on Linux :
+### With uv on Linux
 
 ```bash
 # download repository
@@ -33,15 +37,31 @@ cd demo-geocontext
 export MODEL_NAME="anthropic:claude-3-5-sonnet-latest"
 export ANTHROPIC_API_KEY="YourApiKey"
 
-# start gradio demo on http://localhost:7860/ :
+# start demo on http://localhost:8000/ :
 uv run demo_gradio.py
 ```
 
-With uv on Windows, adapt model and credentials configuration as follow :
+### With uv on Windows
+
+Compared to Linux, adapt model and credentials configuration as follow with PowerShell :
 
 ```powershell
 $env:MODEL_NAME="ollama:mistral:7b"
 $env:ANTHROPIC_API_KEY="YourApiKey"
+
+# start demo on http://localhost:8000/
+uv run demo_gradio.py
+```
+
+### With docker
+
+See [docker-compose.yaml](docker-compose.yaml) :
+
+```bash
+# build image
+docker compose build
+# start demo on http://localhost:8000/
+docker compose up -d
 ```
 
 ## Credits
