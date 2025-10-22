@@ -13,14 +13,15 @@ Interactive demo for [mborne/geocontext](https://github.com/mborne/geocontext#re
 
 ## Parameters
 
-| Name              | Description                                                                                                                          | Default                              |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ |
-| MODEL_NAME        | The name of the model (see [LangGraph - create_react_agent](https://langchain-ai.github.io/langgraph/agents/models/#use-in-an-agent) | "anthropic:claude-3-5-sonnet-latest" |
-| ANTHROPIC_API_KEY | Required from `anthropic:*` models                                                                                                   |                                      |
-| REDIS_ENABLED     | Use redis for short term memory                                                                                                      | False                                |
-| REDIS_HOST        | The Redis host                                                                                                                       | localhost                            |
-| REDIS_PORT        | The Redis port                                                                                                                       | 6379                                 |
-| REDIS_DB          | The Redis database                                                                                                                   | 0                                    |
+| Name              | Description                                                                                                                                                                                                                                                                 | Default                              |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| MODEL_NAME        | The name of the model (see [LangGraph - create_react_agent](https://langchain-ai.github.io/langgraph/agents/models/#use-in-an-agent) / [init_chat_model](https://python.langchain.com/api_reference/langchain/chat_models/langchain.chat_models.base.init_chat_model.html)) | "anthropic:claude-3-5-sonnet-latest" |
+| ANTHROPIC_API_KEY | Required from `anthropic:*` models                                                                                                                                                                                                                                          |                                      |
+| GOOGLE_API_KEY    | Required from `google_genai:*` models                                                                                                                                                                                                                                       |                                      |
+| REDIS_ENABLED     | Use redis for short term memory                                                                                                                                                                                                                                             | False                                |
+| REDIS_HOST        | The Redis host                                                                                                                                                                                                                                                              | localhost                            |
+| REDIS_PORT        | The Redis port                                                                                                                                                                                                                                                              | 6379                                 |
+| REDIS_DB          | The Redis database                                                                                                                                                                                                                                                          | 0                                    |
 
 > Note that "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY" are supported if you have to use a corporate proxy.
 
@@ -46,7 +47,8 @@ uv run demo_gradio.py
 Compared to Linux, adapt model and credentials configuration as follow with PowerShell :
 
 ```powershell
-$env:MODEL_NAME="ollama:mistral:7b"
+#$env:MODEL_NAME="ollama:mistral:7b"
+$env:MODEL_NAME="anthropic:claude-3-5-sonnet-latest"
 $env:ANTHROPIC_API_KEY="YourApiKey"
 
 # start demo on http://localhost:8000/
@@ -60,6 +62,11 @@ See [docker-compose.yaml](docker-compose.yaml) :
 ```bash
 # build image
 docker compose build
+
+# Use Google Gemini API
+export MODEL_NAME="google_genai:gemini-2.5-flash"
+export GOOGLE_API_KEY="YourApiKey"
+
 # start demo on http://localhost:8000/
 docker compose up -d
 ```

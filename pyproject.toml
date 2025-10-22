@@ -10,6 +10,7 @@ dependencies = [
     "gradio>=5.47.0",
     "langchain>=0.3.27",
     "langchain-anthropic>=0.3.21",
+    "langchain-google-genai>=2.1.12",
     "langchain-google-vertexai>=2.1.2",
     "langchain-mcp-adapters>=0.1.10",
     "langchain-ollama>=0.3.8",
