@@ -10,6 +10,7 @@ services:
       - REDIS_HOST=redis
       - MODEL_NAME=${MODEL_NAME:-anthropic:claude-3-5-sonnet-latest}
       - ANTHROPIC_API_KEY
+      - GOOGLE_API_KEY
       - HTTP_PROXY
       - HTTPS_PROXY
       - NO_PROXY=${NO_PROXY:-127.0.0.1,localhost}

@@ -17,6 +17,7 @@ Interactive demo for [mborne/geocontext](https://github.com/mborne/geocontext#re
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ |
 | MODEL_NAME        | The name of the model (see [LangGraph - create_react_agent](https://langchain-ai.github.io/langgraph/agents/models/#use-in-an-agent) | "anthropic:claude-3-5-sonnet-latest" |
 | ANTHROPIC_API_KEY | Required from `anthropic:*` models                                                                                                   |                                      |
+| GOOGLE_API_KEY | Required from `google_genai:*` models                                                                                                   |                                      |
 | REDIS_ENABLED     | Use redis for short term memory                                                                                                      | False                                |
 | REDIS_HOST        | The Redis host                                                                                                                       | localhost                            |
 | REDIS_PORT        | The Redis port                                                                                                                       | 6379                                 |
@@ -60,6 +61,11 @@ See [docker-compose.yaml](docker-compose.yaml) :
 ```bash
 # build image
 docker compose build
+
+# Use Google Gemini API
+export MODEL_NAME="google_genai:gemini-2.5-flash"
+export GOOGLE_API_KEY="YourApiKey"
+
 # start demo on http://localhost:8000/
 docker compose up -d
 ```
