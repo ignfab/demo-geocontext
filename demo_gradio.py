@@ -164,8 +164,6 @@ head = f"""
 <link rel="stylesheet" href="/front/demo-geocontext.css"></link>
 """
 
-from agent import MODEL_NAME
-
 EXPLICATION = f"""
 Vous êtes sur un **démonstrateur technique** permettant de tester le MCP [mborne/geocontext](https://github.com/mborne/geocontext#readme) qui s'appuie 
 sur les services de la Géoplateforme pour répondre à des questions géographiques (voir [mborne/geocontext - Fonctionnalités](https://github.com/mborne/geocontext#fonctionnalit%C3%A9s) pour les exemples).
