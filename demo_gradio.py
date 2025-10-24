@@ -5,7 +5,6 @@ import logging
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 logger = logging.getLogger("demo_gradio")
 
-from sqlalchemy.sql import true
 import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse, RedirectResponse
