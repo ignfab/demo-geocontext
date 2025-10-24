@@ -179,7 +179,6 @@ with gr.Blocks(head=head) as demo:
     explication = gr.Markdown(
         value=EXPLICATION
     )
-    model_name = gr.Text(value=MODEL_NAME, visible=False)
     chatbot = gr.Chatbot(
         type="messages", 
         label="demo-geocontext",
