@@ -1,6 +1,7 @@
 import OlSimpleMap from './ol-simple-map';
 import { getBackgroundLayer } from './helpers';
 import 'ol/ol.css';
+import './demo-geocontext.css'
 
 // Enregistrer automatiquement le web component
 customElements.define('ol-simple-map', OlSimpleMap);

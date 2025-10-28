@@ -32,6 +32,7 @@ export function getBackgroundLayer(name: string) : TileLayer {
         // remove the gpf: prefix
         const layerName = name.replace('gpf:', '');
         return new TileLayer({
+            className: 'tms-greyscale',
             source: new ImageTile({
                 url: getGeoplateformeUrlTMS(layerName),
             }),
@@ -39,6 +40,7 @@ export function getBackgroundLayer(name: string) : TileLayer {
     }
 
     return new TileLayer({
+        className: 'tms-greyscale',
         source: new OSM()
     });
 }
