@@ -9,6 +9,7 @@ services:
       - REDIS_ENABLED=True
       - REDIS_HOST=redis
       - MODEL_NAME=${MODEL_NAME:-anthropic:claude-3-5-sonnet-latest}
+      - TEMPERATURE=${TEMPERATURE:-0}
       - ANTHROPIC_API_KEY
       - GOOGLE_API_KEY
       - HTTP_PROXY

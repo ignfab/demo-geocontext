@@ -13,6 +13,8 @@ from tools import create_map
 
 # retreive model name from environment variable or use default
 MODEL_NAME = os.getenv("MODEL_NAME", "anthropic:claude-3-5-sonnet-latest")
+# retrieve temperature from environment variable or use default
+TEMPERATURE = int(os.getenv("TEMPERATURE",0))
 # ensure that the required environment variable is set for anthropic models
 if MODEL_NAME.startswith("anthropic:"):
     if os.getenv("ANTHROPIC_API_KEY", None) is None:
@@ -20,7 +22,7 @@ if MODEL_NAME.startswith("anthropic:"):
 
 
 logger.info(f"Create graph using model: {MODEL_NAME}")
-model = init_chat_model(MODEL_NAME)
+model = init_chat_model(MODEL_NAME, temperature=TEMPERATURE)
 
 
 async def build_graph(checkpointer=InMemorySaver()) -> CompiledStateGraph:
