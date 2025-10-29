@@ -48,12 +48,6 @@ async def health_redis():
             content={"status": "error", "message": "redis is disconnected"},
         )
 
-@app.get('/admin/threads')
-async def admin_thread_ids():
-    global graph
-    thread_ids = await get_thread_ids(graph.checkpointer)
-    return {"status": "ok", "thread_ids": thread_ids}
-
 app.mount("/front", StaticFiles(directory="front/dist"), name="front")
 
 def to_gradio_message(message):
