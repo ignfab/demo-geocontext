@@ -4,7 +4,7 @@ Interactive demo for [ignfab/geocontext](https://github.com/ignfab/geocontext#re
 
 ## Screenshot
 
-![Screenshot](img/screenshot.png)
+![Screenshot](docs/screenshot.png)
 
 ## Requirements
 
