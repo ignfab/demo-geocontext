@@ -12,7 +12,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 from tools import create_map
 
 # retreive model name from environment variable or use default
-MODEL_NAME = os.getenv("MODEL_NAME", "anthropic:claude-3-5-sonnet-latest")
+MODEL_NAME = os.getenv("MODEL_NAME", "anthropic:claude-3-7-sonnet-latest")
 # retrieve temperature from environment variable or use default
 TEMPERATURE = int(os.getenv("TEMPERATURE",0))
 # ensure that the required environment variable is set for anthropic models
