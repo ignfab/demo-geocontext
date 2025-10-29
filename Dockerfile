@@ -18,7 +18,7 @@ RUN apt-get update \
 
 WORKDIR /app
 # Copy application files only
-COPY uv.lock pyproject.toml .python-version .
+COPY uv.lock pyproject.toml .python-version ./
 # Install dependencies and sync
 RUN uv sync --no-cache --no-dev
 
