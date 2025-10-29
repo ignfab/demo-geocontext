@@ -1,6 +1,6 @@
 # demo-geocontext
 
-Interactive demo for [mborne/geocontext](https://github.com/mborne/geocontext#readme) based on [Gradio - ChatBot](https://www.gradio.app/guides/creating-a-chatbot-fast) and  [LangGraph](https://langchain-ai.github.io/langgraph/agents/mcp/#use-mcp).
+Interactive demo for [ignfab/geocontext](https://github.com/ignfab/geocontext#readme) based on [Gradio - ChatBot](https://www.gradio.app/guides/creating-a-chatbot-fast) and  [LangGraph](https://langchain-ai.github.io/langgraph/agents/mcp/#use-mcp).
 
 ## Screenshot
 
@@ -32,7 +32,7 @@ Interactive demo for [mborne/geocontext](https://github.com/mborne/geocontext#re
 
 ```bash
 # download repository
-git clone https://github.com/mborne/demo-geocontext
+git clone https://github.com/ignfab/demo-geocontext
 cd demo-geocontext
 
 # configure model model and credentials
@@ -77,7 +77,7 @@ docker compose up -d
 * [gradio - Chatbot](https://www.gradio.app/docs/gradio/chatbot)
 * [LangGraph](https://langchain-ai.github.io/langgraph/agents/mcp/#use-mcp)
 * [langchain-mcp-adapters](https://github.com/langchain-ai/langchain-mcp-adapters#readme)
-* [mborne/geocontext](https://github.com/mborne/geocontext#readme)
+* [ignfab/geocontext](https://github.com/ignfab/geocontext#readme)
 
 ## License
 
