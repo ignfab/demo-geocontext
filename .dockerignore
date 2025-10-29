@@ -11,3 +11,6 @@ wheels/
 
 # Gradio
 /.gradio/
+
+# Git
+.git

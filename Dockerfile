@@ -17,7 +17,17 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY . .
+# Copy application files only
+COPY uv.lock .
+COPY .python-version .
+COPY demo_gradio.py .
+COPY agent.py .
+COPY db.py .
+COPY tools.py .
+COPY front/dist ./front/dist
+COPY pyproject.toml .
+COPY LICENSE .
+# Install dependencies and sync
 RUN uv sync --no-cache --no-dev
 
 EXPOSE 8000
