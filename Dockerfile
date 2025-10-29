@@ -17,8 +17,15 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY . .
+# Copy application files only
+COPY uv.lock pyproject.toml .python-version ./
+# Install dependencies and sync
 RUN uv sync --no-cache --no-dev
+
+COPY front/dist ./front/dist
+COPY *.py .
+COPY LICENSE .
+
 
 EXPOSE 8000
 CMD ["uv", "run", "demo_gradio.py"]
