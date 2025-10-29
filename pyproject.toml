@@ -1,7 +1,7 @@
 [project]
 name = "demo-geocontext"
 version = "0.1.0"
-description = "Interactive demo for mborne/geocontext"
+description = "Interactive demo for ignfab/geocontext"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [

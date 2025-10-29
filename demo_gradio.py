@@ -165,8 +165,8 @@ head = f"""
 """
 
 EXPLICATION = f"""
-Vous êtes sur un **démonstrateur technique** permettant de tester le MCP [mborne/geocontext](https://github.com/mborne/geocontext#readme) qui s'appuie 
-sur les services de la Géoplateforme pour répondre à des questions géographiques (voir [mborne/geocontext - Fonctionnalités](https://github.com/mborne/geocontext#fonctionnalit%C3%A9s) pour les exemples).
+Vous êtes sur un **démonstrateur technique** permettant de tester le MCP [ignfab/geocontext](https://github.com/ignfab/geocontext#readme) qui s'appuie 
+sur les services de la Géoplateforme pour répondre à des questions géographiques (voir [ignfab/geocontext - Fonctionnalités](https://github.com/ignfab/geocontext#fonctionnalit%C3%A9s) pour les exemples).
 
 ATTENTION : Ne pas fournir de données sensibles ou personnelles :
 - Les questions sont envoyées à un service tiers (LLM) pour être analysées et traitées.
@@ -282,7 +282,7 @@ with gr.Blocks(head=head) as demo:
 # Chatbot in readonly mode
 with gr.Blocks(head=head) as demo_share:
     explication = gr.Markdown(
-        value=f"Vous êtes sur un **démonstrateur technique** permettant de tester le MCP [mborne/geocontext](https://github.com/mborne/geocontext#fonctionnalit%C3%A9s). Vous consultez une discussion en **lecture seule**."
+        value=f"Vous êtes sur un **démonstrateur technique** permettant de tester le MCP [ignfab/geocontext](https://github.com/ignfab/geocontext#fonctionnalit%C3%A9s). Vous consultez une discussion en **lecture seule**."
     )
     chatbot = gr.Chatbot(
         type="messages", 
