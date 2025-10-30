@@ -34,7 +34,7 @@ kubectl -n geocontext create secret generic apikeys --from-literal=ANTHROPIC_API
 
 ```bash
 # TODO : adapt after chart publishing
-helm -n geocontext upgrade --install --create-namespace demo-geocontext . -f my-values.yaml
+helm -n geocontext upgrade --install demo-geocontext . -f my-values.yaml
 ```
 
 ## Debug
