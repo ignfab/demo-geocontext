@@ -10,22 +10,31 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+from langgraph.checkpoint.memory import InMemorySaver
+from redis.asyncio import Redis
+from langgraph.checkpoint.redis.aio import AsyncRedisSaver
 
 import gradio as gr
-
 from agent import build_graph, get_messages
 
-from db import redis_client, get_checkpointer, get_thread_ids
+def str2bool(v: str) -> bool :
+  return str(v).lower() in ("yes", "true", "t", "1")
 
 graph = None
+redis_client = None
 
 async def lifespan(app: FastAPI):
     global graph
 
     logger.info("Starting up...")
-
     logger.info("Create checkpointer...")
-    
+
+    REDIS_ENABLED = str2bool(os.getenv('REDIS_ENABLED', False))
+    REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+    REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+    REDIS_DB = int(os.getenv("REDIS_DB", 0))
+
+    POSTGRES_ENABLED = str2bool(os.getenv('POSTGRES_ENABLED', False))
     POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
     POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", 5432))
     POSTGRES_DB = os.getenv("POSTGRES_DB")
@@ -33,12 +42,37 @@ async def lifespan(app: FastAPI):
     POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
     DB_URI = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
 
-    async with AsyncPostgresSaver.from_conn_string(DB_URI) as checkpointer:
-        await checkpointer.setup()
-        logger.info("Build graph...")
+    if not REDIS_ENABLED and not POSTGRES_DB:
+        checkpointer = InMemorySaver()
         graph = await build_graph(checkpointer=checkpointer)
         yield
         logger.info("Shutting down...")
+
+    if REDIS_ENABLED and POSTGRES_ENABLED:
+        raise ValueError("Only one of REDIS or POSTGRES can be enabled at a time.")
+
+    if REDIS_ENABLED:
+        redis_client = Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
+        logger.debug("check redis connexion...")
+        try:
+            ping_result = await redis_client.ping()
+            print(ping_result)
+        except Exception as e:
+            logger.error(e)
+            raise e
+        checkpointer = AsyncRedisSaver(redis_client=redis_client)
+        await checkpointer.asetup()
+        graph = await build_graph(checkpointer=checkpointer)
+        yield
+        logger.info("Shutting down...")
+
+    if POSTGRES_ENABLED:
+        async with AsyncPostgresSaver.from_conn_string(DB_URI) as checkpointer:
+            await checkpointer.setup()
+            logger.info("Build graph...")
+            graph = await build_graph(checkpointer=checkpointer)
+            yield
+            logger.info("Shutting down...")
 
 
 app = FastAPI(lifespan=lifespan)
