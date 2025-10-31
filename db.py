@@ -3,6 +3,9 @@ logger = logging.getLogger(__name__)
 
 import os
 
+from contextlib import asynccontextmanager
+from typing import AsyncIterator
+
 from langgraph.checkpoint.memory import InMemorySaver
 
 from redis.asyncio import Redis
@@ -12,21 +15,7 @@ from psycopg_pool import AsyncConnectionPool
 from psycopg import AsyncConnection
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 
-def str2bool(v: str) -> bool :
-  return str(v).lower() in ("yes", "true", "t", "1")
-
-REDIS_ENABLED = str2bool(os.getenv('REDIS_ENABLED', False))
-REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
-REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
-REDIS_DB = int(os.getenv("REDIS_DB", 0))
-
-POSTGRES_ENABLED = str2bool(os.getenv('POSTGRES_ENABLED', False))
-POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
-POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", 5432))
-POSTGRES_DB = os.getenv("POSTGRES_DB")
-POSTGRES_USER = os.getenv("POSTGRES_USER")
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
-DB_URI = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+DB_URI = os.getenv("DB_URI",None)
 
 class BaseDatabase:
     def __init__(self, checkpointer: InMemorySaver|AsyncRedisSaver|AsyncPostgresSaver):
@@ -71,32 +60,42 @@ class PostgresDatabase(BaseDatabase):
             return result is not None and result[0] == 1
 
 
-from contextlib import asynccontextmanager
-from typing import AsyncIterator
-
 @asynccontextmanager
 async def create_database() -> AsyncIterator[BaseDatabase]:
-    # Use Redis if enabled
-    if REDIS_ENABLED:
-        redis_client = Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
+    if DB_URI is None or DB_URI == "":
+        logger.info("create InMemoryDatabase as DB_URI is not defined")
+        yield InMemoryDatabase(checkpointer=InMemorySaver())
+    # Use Redis ?
+    elif DB_URI.startswith("redis://"):
+        logger.debug("create Redis client...")
+        redis_client = Redis(url=DB_URI)
+        logger.debug("create AsyncRedisSaver checkpointer...")
         checkpointer = AsyncRedisSaver(redis_client=redis_client)
+        logger.debug("setup AsyncRedisSaver checkpointer...")
         await checkpointer.asetup()
+        logger.info("RedisDatabase created")
         yield RedisDatabase(redis_client=redis_client, checkpointer=checkpointer)
-    # Use Postgres if enabled
-    elif POSTGRES_ENABLED:
+    # Use PostgresSQL?
+    elif DB_URI.startswith("postgresql://"):
+        logger.info("create AsyncConnectionPool for PostgreSQL...")
         connection_kwargs = {
             "autocommit": True,
             "prepare_threshold": 0,
             #"row_factory": dict_row,
         }
         async with AsyncConnectionPool(DB_URI,kwargs=connection_kwargs) as pool:
+            logger.debug("create connection...")
             async with pool.connection(timeout=5) as conn:
+                logger.debug("create AsyncPostgresSaver...")
                 checkpointer = AsyncPostgresSaver(conn=conn)
+                logger.debug("setup AsyncPostgresSaver...")
                 await checkpointer.setup()
+                logger.debug("PostgresDatabase created")
                 yield PostgresDatabase(conn=conn,checkpointer=checkpointer)
     # Default to in-memory database
     else:
-        yield InMemoryDatabase(checkpointer=InMemorySaver())
+        error_message = f"Invalid DB_URI (not starting with redis:// or postgresql://)"
+        raise RuntimeError(error_message)
 
 
 async def get_thread_ids(checkpointer: AsyncRedisSaver) -> list[str]:

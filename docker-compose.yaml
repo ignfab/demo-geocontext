@@ -15,36 +15,21 @@ services:
       - HTTP_PROXY
       - HTTPS_PROXY
       - NO_PROXY=${NO_PROXY:-127.0.0.1,localhost}
-      - POSTGRES_ENABLED=True
-      - POSTGRES_HOST=postgresql
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=${POSTGRES_USER:-geocontext_user}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-geocontext_password}
-      - POSTGRES_DB=${POSTGRES_DB:-geocontext_db}
+      - DB_URI=postgresql://geocontext:${PGPASSWORD:-ChangeIt}@db:5432/geocontext
     ports:
       - 8000:8000
-  redis:
-    image: redis:8.2-alpine
-    command: redis-server --save 20 1
-    #ports:
-    #  - '6379:6379'
-    volumes:
-      - redis-data:/data
-    restart: unless-stopped
-  postgresql:
+
+  db:
     image: postgres:15-alpine
     environment:
-      - POSTGRES_USER=${POSTGRES_USER:-geocontext_user}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-geocontext_password}
-      - POSTGRES_DB=${POSTGRES_DB:-geocontext_db}
-    ports:
-      - '5432:5432'
+      - POSTGRES_USER=geocontext
+      - POSTGRES_PASSWORD=${PGPASSWORD:-ChangeIt}
+    # ports:
+    #   - '5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
 
 volumes:
-  redis-data:
-    name: geocontext-redis-data
   pgdata:
     name: geocontext-pgdata

@@ -18,6 +18,7 @@ from agent import build_graph, get_messages
 def str2bool(v: str) -> bool :
   return str(v).lower() in ("yes", "true", "t", "1")
 
+
 # database holding the checkpointer
 database = None
 # the graph instance
@@ -32,9 +33,9 @@ async def lifespan(app: FastAPI):
 
     logger.info("Starting up...")
     logger.info("Create Database...")
-    async with create_database() as database:
+    async with create_database() as db:
         logger.info("Build graph...")
-        database = database
+        database = db
         graph = await build_graph(checkpointer=database.checkpointer)
         yield
         logger.info("Shutting down...")
