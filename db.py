@@ -68,7 +68,7 @@ async def create_database() -> AsyncIterator[BaseDatabase]:
     # Use Redis ?
     elif DB_URI.startswith("redis://"):
         logger.debug("create Redis client...")
-        redis_client = Redis(url=DB_URI)
+        redis_client = Redis.from_url(DB_URI)
         logger.debug("create AsyncRedisSaver checkpointer...")
         checkpointer = AsyncRedisSaver(redis_client=redis_client)
         logger.debug("setup AsyncRedisSaver checkpointer...")
