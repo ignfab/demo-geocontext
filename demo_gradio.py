@@ -9,6 +9,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 
 import gradio as gr
 
@@ -24,11 +25,20 @@ async def lifespan(app: FastAPI):
     logger.info("Starting up...")
 
     logger.info("Create checkpointer...")
-    checkpointer = await get_checkpointer()
-    logger.info("Build graph...")
-    graph = await build_graph(checkpointer=checkpointer)
-    yield
-    logger.info("Shutting down...")
+    
+    POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
+    POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", 5432))
+    POSTGRES_DB = os.getenv("POSTGRES_DB")
+    POSTGRES_USER = os.getenv("POSTGRES_USER")
+    POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+    DB_URI = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+
+    async with AsyncPostgresSaver.from_conn_string(DB_URI) as checkpointer:
+        await checkpointer.setup()
+        logger.info("Build graph...")
+        graph = await build_graph(checkpointer=checkpointer)
+        yield
+        logger.info("Shutting down...")
 
 
 app = FastAPI(lifespan=lifespan)

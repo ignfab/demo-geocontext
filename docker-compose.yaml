@@ -6,7 +6,7 @@ services:
         - http_proxy
         - https_proxy
     environment:
-      - REDIS_ENABLED=True
+      - REDIS_ENABLED=False
       - REDIS_HOST=redis
       - MODEL_NAME=${MODEL_NAME:-anthropic:claude-3-7-sonnet-latest}
       - TEMPERATURE=${TEMPERATURE:-0}
@@ -15,6 +15,12 @@ services:
       - HTTP_PROXY
       - HTTPS_PROXY
       - NO_PROXY=${NO_PROXY:-127.0.0.1,localhost}
+      - POSTGRES_ENABLED=True
+      - POSTGRES_HOST=postgresql
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-geocontext_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-geocontext_password}
+      - POSTGRES_DB=${POSTGRES_DB:-geocontext_db}
     ports:
       - 8000:8000
   redis:
@@ -25,7 +31,20 @@ services:
     volumes:
       - redis-data:/data
     restart: unless-stopped
+  postgresql:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-geocontext_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-geocontext_password}
+      - POSTGRES_DB=${POSTGRES_DB:-geocontext_db}
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
 
 volumes:
   redis-data:
     name: geocontext-redis-data
+  pgdata:
+    name: geocontext-pgdata
