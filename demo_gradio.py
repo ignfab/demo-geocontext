@@ -167,7 +167,7 @@ ATTENTION : Ne pas fournir de données sensibles ou personnelles :
 - Tous les messages sont enregistrés pour permettre une analyse des besoins des utilisateurs pour un tel service.
 """
 
-with gr.Blocks(head=head) as demo:
+with gr.Blocks(head=head,title="demo-geocontext") as demo:
     explication = gr.Markdown(
         value=EXPLICATION
     )
@@ -274,7 +274,7 @@ with gr.Blocks(head=head) as demo:
 
 
 # Chatbot in readonly mode
-with gr.Blocks(head=head) as demo_share:
+with gr.Blocks(head=head, title="demo-geocontext (lecture seule)") as demo_share:
     explication = gr.Markdown(
         value=f"Vous êtes sur un **démonstrateur technique** permettant de tester le MCP [ignfab/geocontext](https://github.com/ignfab/geocontext#fonctionnalit%C3%A9s). Vous consultez une discussion en **lecture seule**."
     )
