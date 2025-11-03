@@ -56,7 +56,7 @@ async def health_redis():
     else:
         return JSONResponse(
             status_code=500,
-            content={"status": "error", "message": "redis is disconnected"},
+            content={"status": "error", "message": "database is disconnected"},
         )
 
 app.mount("/front", StaticFiles(directory="front/dist"), name="front")

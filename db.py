@@ -41,7 +41,7 @@ class RedisDatabase(BaseDatabase):
 
     async def is_healthy(self) -> bool:
         try:
-            pong = self.redis_client.ping()
+            pong = await self.redis_client.ping()
             return pong is True
         except Exception as e:
             logger.error(f"Redis health check failed: {e}")
@@ -54,11 +54,14 @@ class PostgresDatabase(BaseDatabase):
         self.conn = conn
 
     async def is_healthy(self) -> bool:
-        async with self.conn.cursor() as cursor:
-            await cursor.execute("SELECT 1")
-            result = await cursor.fetchone()
-            return result is not None and result[0] == 1
-
+        try:
+            async with self.conn.cursor() as cursor:
+                await cursor.execute("SELECT 1")
+                result = await cursor.fetchone()
+                return result is not None and result[0] == 1
+        except Exception as e:
+            logger.error(f"PostgreSQL health check failed: {e}")
+            return False
 
 @asynccontextmanager
 async def create_database() -> AsyncIterator[BaseDatabase]:
