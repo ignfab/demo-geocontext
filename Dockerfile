@@ -16,6 +16,9 @@ RUN apt-get update \
  && apt-get install -y nodejs \
  && rm -rf /var/lib/apt/lists/*
 
+# uid=1000,gid=1000 in ubuntu:24.04
+USER ubuntu
+
 WORKDIR /app
 # Copy application files only
 COPY uv.lock pyproject.toml .python-version ./
