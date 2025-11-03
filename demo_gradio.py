@@ -10,26 +10,35 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-import gradio as gr
+from db import create_database
 
+import gradio as gr
 from agent import build_graph, get_messages
 
-from db import redis_client, get_checkpointer, get_thread_ids
+def str2bool(v: str) -> bool :
+  return str(v).lower() in ("yes", "true", "t", "1")
 
+
+# database holding the checkpointer
+database = None
+# the graph instance
 graph = None
 
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
 async def lifespan(app: FastAPI):
+    global database
     global graph
 
     logger.info("Starting up...")
-
-    logger.info("Create checkpointer...")
-    checkpointer = await get_checkpointer()
-    logger.info("Build graph...")
-    graph = await build_graph(checkpointer=checkpointer)
-    yield
-    logger.info("Shutting down...")
-
+    logger.info("Create Database...")
+    async with create_database() as db:
+        logger.info("Build graph...")
+        database = db
+        graph = await build_graph(checkpointer=database.checkpointer)
+        yield
+        logger.info("Shutting down...")
 
 app = FastAPI(lifespan=lifespan)
 
@@ -37,15 +46,17 @@ app = FastAPI(lifespan=lifespan)
 async def health():
     return {"status": "ok", "message": "app is running"}
 
-@app.get('/health/redis')
+@app.get('/health/db')
 async def health_redis():
-    try:
-        await redis_client.ping()
+    global database
+
+    healthy = await database.is_healthy()
+    if healthy:
         return {"status": "ok", "message": "connected"} 
-    except Exception as e:
+    else:
         return JSONResponse(
             status_code=500,
-            content={"status": "error", "message": "redis is disconnected"},
+            content={"status": "error", "message": "database is disconnected"},
         )
 
 app.mount("/front", StaticFiles(directory="front/dist"), name="front")
