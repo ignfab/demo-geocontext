@@ -6,8 +6,6 @@ services:
         - http_proxy
         - https_proxy
     environment:
-      - REDIS_ENABLED=False
-      - REDIS_HOST=redis
       - MODEL_NAME=${MODEL_NAME:-anthropic:claude-3-7-sonnet-latest}
       - TEMPERATURE=${TEMPERATURE:-0}
       - ANTHROPIC_API_KEY
