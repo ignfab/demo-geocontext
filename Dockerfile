@@ -29,6 +29,9 @@ COPY front/dist ./front/dist
 COPY *.py .
 COPY LICENSE .
 
+RUN mkdir -p /home/ubuntu/.cache/uv
+RUN mkdir -p /home/ubuntu/.local/share/uv/tools
+RUN mkdir -p /home/ubuntu/.npm
 
 EXPOSE 8000
 CMD ["uv", "run", "demo_gradio.py"]
