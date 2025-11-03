@@ -274,7 +274,7 @@ with gr.Blocks(head=head,title="demo-geocontext") as demo:
 
 
 # Chatbot in readonly mode
-with gr.Blocks(head=head, title="demo-geocontext history") as demo_share:
+with gr.Blocks(head=head, title="demo-geocontext (lecture seule)") as demo_share:
     explication = gr.Markdown(
         value=f"Vous êtes sur un **démonstrateur technique** permettant de tester le MCP [ignfab/geocontext](https://github.com/ignfab/geocontext#fonctionnalit%C3%A9s). Vous consultez une discussion en **lecture seule**."
     )
