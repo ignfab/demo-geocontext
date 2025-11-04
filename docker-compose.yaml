@@ -20,7 +20,6 @@ services:
       - site-uv-cache:/home/ubuntu/.cache/uv
       - site-uv-tools:/home/ubuntu/.local/share/uv/tools
       - site-npm:/home/ubuntu/.npm
-
     ports:
       - 8000:8000
 
