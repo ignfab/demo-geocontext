@@ -33,6 +33,11 @@ COPY LICENSE .
 # uid=1000,gid=1000 in ubuntu:24.04
 USER ubuntu
 
+# create dynamic folders with ubuntu as a owner
+RUN mkdir -p /home/ubuntu/.cache/uv \
+ && mkdir -p /home/ubuntu/.local/share/uv/tools \
+ && mkdir -p /home/ubuntu/.npm
+
 ENV PATH="/app/.venv/bin:$PATH"
 EXPOSE 8000
 CMD ["python", "demo_gradio.py"]
