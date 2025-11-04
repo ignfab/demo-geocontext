@@ -33,5 +33,8 @@ RUN mkdir -p /home/ubuntu/.cache/uv
 RUN mkdir -p /home/ubuntu/.local/share/uv/tools
 RUN mkdir -p /home/ubuntu/.npm
 
+ENV UV_TOOL_DIR=/home/ubuntu/.local/share/uv/tools
+ENV UV_CACHE_DIR=/home/ubuntu/.cache/uv
+
 EXPOSE 8000
 CMD ["uv", "run", "demo_gradio.py"]
