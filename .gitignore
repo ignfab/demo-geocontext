@@ -11,3 +11,5 @@ wheels/
 # Gradio
 /.gradio/
 
+# Local environment variables
+.env

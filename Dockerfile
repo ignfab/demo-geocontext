@@ -7,6 +7,9 @@ RUN apt-get update \
  && curl -LsSf https://astral.sh/uv/install.sh | sh \
  && rm -rf /var/lib/apt/lists*
 
+# Configure folder for uv python installation
+ENV UV_PYTHON_INSTALL_DIR=/opt/uv-python
+
 # Install NodeJS (npx)
 RUN apt-get update \
  && apt-get install -y ca-certificates curl gnupg \
@@ -16,19 +19,20 @@ RUN apt-get update \
  && apt-get install -y nodejs \
  && rm -rf /var/lib/apt/lists/*
 
-# uid=1000,gid=1000 in ubuntu:24.04
-USER ubuntu
-
 WORKDIR /app
 # Copy application files only
 COPY uv.lock pyproject.toml .python-version ./
 # Install dependencies and sync
-RUN uv sync --no-cache --no-dev
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --no-dev
 
 COPY front/dist ./front/dist
 COPY *.py .
 COPY LICENSE .
 
+# uid=1000,gid=1000 in ubuntu:24.04
+USER ubuntu
 
+ENV PATH="/app/.venv/bin:$PATH"
 EXPOSE 8000
-CMD ["uv", "run", "demo_gradio.py"]
+CMD ["python", "demo_gradio.py"]
