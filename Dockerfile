@@ -38,6 +38,9 @@ RUN mkdir -p /home/ubuntu/.cache/uv \
  && mkdir -p /home/ubuntu/.local/share/uv/tools \
  && mkdir -p /home/ubuntu/.npm
 
+ # Gradio analytics opt-out
+ENV GRADIO_ANALYTICS_ENABLED="False"
+
 ENV PATH="/app/.venv/bin:$PATH"
 EXPOSE 8000
 CMD ["python", "demo_gradio.py"]
