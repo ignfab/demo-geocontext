@@ -298,9 +298,20 @@ with gr.Blocks(head=head,title="demo-geocontext") as demo:
 
 
 # Chatbot in readonly mode
+
+EXPLICATION_RO = f"""
+<a href="https://www.ign.fr/" title="Institut national de l'information géographique et forestière" target="_blank">
+    <img src="/assets/logo-ign.png" alt="IGN"/>
+</a>
+Ce chatbot est une expérimentation conçue par les équipes de l’<a href="https://www.ign.fr" title="Institut national de l'information géographique et forestière" target="_blank">IGN</a>. Il facilite l’exploration 
+et l’utilisation des services de la Géoplateforme, en s’appuyant sur le serveur MCP <a href="https://github.com/ignfab/geocontext#readme" target="_blank">ignfab/geocontext</a>, également développé par l’IGN.
+
+Vous consultez une discussion en lecture seule.
+"""
+
 with gr.Blocks(head=head, title="demo-geocontext (lecture seule)") as demo_share:
     explication = gr.Markdown(
-        value=f"Vous êtes sur un **démonstrateur technique** permettant de tester le MCP [ignfab/geocontext](https://github.com/ignfab/geocontext#fonctionnalit%C3%A9s). Vous consultez une discussion en **lecture seule**."
+        value=EXPLICATION_RO
     )
     chatbot = gr.Chatbot(
         type="messages", 
