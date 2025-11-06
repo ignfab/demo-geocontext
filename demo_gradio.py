@@ -59,7 +59,10 @@ async def health_redis():
             content={"status": "error", "message": "database is disconnected"},
         )
 
+# ol-simple-map
 app.mount("/front", StaticFiles(directory="front/dist"), name="front")
+# logos
+app.mount("/assets", StaticFiles(directory="assets"), name="assets")
 
 def to_gradio_message(message):
     """Convertit un message dans un format JSON compatible avec Gradio Chatbot"""
@@ -170,13 +173,23 @@ head = f"""
 """
 
 EXPLICATION = f"""
-Vous êtes sur un **démonstrateur technique** permettant de tester le MCP [ignfab/geocontext](https://github.com/ignfab/geocontext#readme) qui s'appuie 
-sur les services de la Géoplateforme pour répondre à des questions géographiques (voir [ignfab/geocontext - Fonctionnalités](https://github.com/ignfab/geocontext#fonctionnalit%C3%A9s) pour les exemples).
+<a href="https://www.ign.fr/" title="Institut national de l'information géographique et forestière" target="_blank">
+    <img src="/assets/logo-ign.png" alt="IGN"/>
+</a>
+Ce chatbot est une expérimentation conçue par les équipes de l’<a href="https://www.ign.fr" title="Institut national de l'information géographique et forestière" target="_blank">IGN</a>. Il facilite l’exploration 
+et l’utilisation des services de la Géoplateforme, en s’appuyant sur le serveur MCP <a href="https://github.com/ignfab/geocontext#readme" target="_blank">ignfab/geocontext</a>, également développé par l’IGN.
 
-ATTENTION : Ne pas fournir de données sensibles ou personnelles :
+Utilisez le champ de texte pour poser vos questions géographiques en langage naturel. Pour des exemples de requêtes, 
+consultez la section « Fonctionnalités » de [ignfab/geocontext - Fonctionnalités](https://github.com/ignfab/geocontext#fonctionnalit%C3%A9s).
+
+<details>
+<summary>ATTENTION : <b>Ne pas fournir de données sensibles ou personnelles</b></summary>
+
 - Les questions sont envoyées à un service tiers (LLM) pour être analysées et traitées.
 - Tous les messages sont enregistrés pour permettre une analyse des besoins des utilisateurs pour un tel service.
+</details>
 """
+
 
 with gr.Blocks(head=head,title="demo-geocontext") as demo:
     explication = gr.Markdown(
