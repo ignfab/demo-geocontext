@@ -6,9 +6,10 @@ logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 logger = logging.getLogger("demo_gradio")
 
 import uvicorn
-from fastapi import FastAPI,Request
+from fastapi import FastAPI,Request,Depends
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from auth import get_current_user, User
 
 from db import create_database
 
@@ -43,13 +44,10 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 @app.get('/me')
-async def me(req: Request):
-    # X-Forwarded-User, X-Forwarded-Email, X-Forwarded-Preferred-Username and X-Forwarded-Groups
-    id = req.headers.get('X-Forwarded-User','anonymous')
-    username = req.headers.get('X-Forwarded-Preferred-Username','anonymous')
-    email = req.headers.get('X-Forwarded-Email','anonymous@gpf.fr')
-    groups = req.headers.get('X-Forwarded-Groups','').split(',')
-    return {"id": id, "username": username, "email": email, "groups": groups}
+async def me(
+    user: User = Depends(get_current_user)
+) -> User :
+    return user
 
 @app.get('/health')
 async def health():
@@ -211,10 +209,10 @@ with gr.Blocks(head=head,title="demo-geocontext") as demo:
     # Button for new discussion
     new_discussion_btn = gr.Button("🆕 Nouvelle discussion", variant="secondary")
 
-    async def initialize_chat(thread_id: str|None):
+    async def initialize_chat(request: gr.Request, thread_id: str|None):
         """Initialise le chat avec l'historique existant si disponible"""
 
-        logger.info(f"initialize_chat(thread_id={thread_id})")
+        logger.info(f"initialize_chat(thread_id={thread_id}, username={request.username})")
         history = []
 
         # if thread_id is empty and not provided, create a new thread
@@ -335,7 +333,14 @@ with gr.Blocks(head=head, title="demo-geocontext (lecture seule)") as demo_share
 def redirect_to_gradio():
     return RedirectResponse(url=f"/chatbot")
 
-app = gr.mount_gradio_app(app, demo, path="/chatbot")
+def get_gradio_user(request: Request):
+    """Retrieve user for Gradio (available as request.username)"""
+
+    user = get_current_user(request)
+    return user.email
+
+
+app = gr.mount_gradio_app(app, demo, path="/chatbot", auth_dependency=get_gradio_user)
 app = gr.mount_gradio_app(app, demo_share, path="/discussion")
 
 
