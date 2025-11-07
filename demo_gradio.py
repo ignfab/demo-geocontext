@@ -204,6 +204,8 @@ with gr.Blocks(head=head,title="demo-geocontext") as demo:
     )
     # State for thread_id (localStorage)
     thread_state = gr.BrowserState(None)
+    # State for username
+    username_state = gr.State(None)
     # Component for sharing link
     share_output = gr.Markdown(value="", visible=True)
     # Button for new discussion
@@ -212,7 +214,9 @@ with gr.Blocks(head=head,title="demo-geocontext") as demo:
     async def initialize_chat(request: gr.Request, thread_id: str|None):
         """Initialise le chat avec l'historique existant si disponible"""
 
-        logger.info(f"initialize_chat(thread_id={thread_id}, username={request.username})")
+        username = request.username    
+            
+        logger.info(f"initialize_chat(thread_id={thread_id}, username={username})")
         history = []
 
         # if thread_id is empty and not provided, create a new thread
@@ -220,29 +224,31 @@ with gr.Blocks(head=head,title="demo-geocontext") as demo:
             thread_id = f"thread-{uuid.uuid4().hex}"
             logger.info(f"thread_id not provided, create a new thread : {thread_id}")
             share_link = create_share_link(thread_id)
-            return history, thread_id, share_link
+            return history, username, thread_id, share_link
 
         logger.info(f"thread_id provided : {thread_id}, load history")
         share_link = create_share_link(thread_id)
         
         try:
             history = await load_conversation_history(thread_id)
-            logger.info(f"Historique chargé pour thread_id={thread_id}: {len(history)} messages")
-            return history, thread_id, share_link
+            logger.info(f"history loaded for thread_id={thread_id}: {len(history)} messages")
+            return history, username, thread_id, share_link
         except Exception as e:
-            logger.error(f"Erreur lors du chargement de l'historique pour {thread_id}: {e}")
-            return [], thread_id, share_link
+            logger.error(f"error loading history for thread_id={thread_id}: {e}")
+            return [], username, thread_id, share_link
 
 
     demo.load(initialize_chat, inputs=[thread_state], outputs=[
-        chatbot, thread_state, share_output
+        chatbot, username_state, thread_state, share_output
     ])
 
-    def user(user_message: str, thread_id: str, history: list):
+    def user(user_message: str, thread_id: str, username: str, history: list):
         if user_message is None or user_message.strip() == "":
             return "", thread_id, history
 
-        return "", thread_id, history + [{"role": "user", "content": user_message.strip()}]
+        message_content = user_message.strip()
+        logging.info(f"user({thread_id}, {username}): {message_content}")
+        return "", thread_id, username, history + [{"role": "user", "content": message_content}]
 
     async def bot(history: list, thread_id: str):
         global graph
@@ -251,7 +257,7 @@ with gr.Blocks(head=head,title="demo-geocontext") as demo:
 
         # required to invoke the graph with short term memory
         config = {"configurable": {"thread_id": thread_id}}
-        logging.info(f"bot({thread_id} - {user_message})")
+        logging.debug(f"bot({thread_id} - {user_message})")
         async for event in graph.astream({"messages": [{"role": "user", "content": user_message}]}, config=config):
             logger.debug("Event:", event)
             
@@ -270,7 +276,7 @@ with gr.Blocks(head=head,title="demo-geocontext") as demo:
         history[-1]["metadata"] = None
         yield history, thread_id
 
-    msg.submit(user, [msg, thread_state, chatbot], [msg, thread_state, chatbot], queue=False).then(
+    msg.submit(user, [msg, thread_state, username_state, chatbot], [msg, thread_state, username_state, chatbot], queue=False).then(
         bot, inputs=[chatbot,thread_state], outputs=[chatbot,thread_state]
     )
 
@@ -282,11 +288,12 @@ with gr.Blocks(head=head,title="demo-geocontext") as demo:
             return f"**Lien de partage :** [/discussion?thread_id={thread_id}](/discussion?thread_id={thread_id})"
         return ""
 
-    @gr.on(new_discussion_btn.click, outputs=[chatbot, thread_state, share_output])
-    def reset_thread_id():
+    @gr.on(new_discussion_btn.click, inputs=[username_state], outputs=[chatbot, thread_state, share_output])
+    def reset_thread_id(username: str):
         """Réinitialise le thread_id et démarre une nouvelle discussion"""
+
         new_thread_id = f"thread-{uuid.uuid4().hex}"
-        logger.info(f"Nouvelle discussion créée avec thread_id: {new_thread_id}")
+        logger.info(f"reset_thread_id(username={username}, new_thread_id={new_thread_id})")
         share_link = create_share_link(new_thread_id)
         return [], new_thread_id, share_link
 
