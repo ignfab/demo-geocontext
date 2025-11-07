@@ -26,13 +26,13 @@ function getGeoplateformeUrlTMS(layerName: string) {
  * @param name the layer name (ex : gpf:GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2.L93)
  * @returns the background layer
  */
-export function getBackgroundLayer(name: string) : TileLayer {
-    console.log('getBackgroundLayer', name);
+export function getBackgroundLayer(name: string, greyscale: boolean = false) : TileLayer {
+    console.log('getBackgroundLayer', name, greyscale);
     if (name.startsWith('gpf:')) {
         // remove the gpf: prefix
         const layerName = name.replace('gpf:', '');
         return new TileLayer({
-            className: 'tms-greyscale',
+            className: greyscale ? 'background-greyscale' : 'background-standard',
             source: new ImageTile({
                 url: getGeoplateformeUrlTMS(layerName),
             }),
@@ -40,7 +40,7 @@ export function getBackgroundLayer(name: string) : TileLayer {
     }
 
     return new TileLayer({
-        className: 'tms-greyscale',
+        className: greyscale ? 'background-greyscale' : 'background-standard',
         source: new OSM()
     });
 }

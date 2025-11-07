@@ -47,6 +47,7 @@
       
       <div class="example">
         <h2>Exemple 1 : Carte avec fond OSM</h2>
+
         <ol-simple-map 
           data-url="https://france-geojson.gregoiredavid.fr/repo/departements.geojson"
           fit-bounds="true"
@@ -55,12 +56,15 @@
       </div>
       
       <div class="example">
-        <h2>Exemple 2 : Carte avec fond IGN</h2>
+        <h2>Exemple 2 : Carte avec fond IGN et fond grisé</h2>
         <ol-simple-map 
           lon="2.294481" 
           lat="48.858370" 
           zoom="7"
           background="gpf:GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2"
+          background-greyscale="true"
+          width="500px"
+          height="500px"
           data-url="https://france-geojson.gregoiredavid.fr/repo/departements.geojson"
         >
         </ol-simple-map>
