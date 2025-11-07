@@ -1,4 +1,8 @@
-.tms-greyscale {
+.background-standard {
+    opacity: 1.0;
+}
+
+.background-greyscale {
     filter: grayscale(100%);
     opacity: 0.5;
 }
