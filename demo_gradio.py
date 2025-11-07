@@ -6,7 +6,7 @@ logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 logger = logging.getLogger("demo_gradio")
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI,Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -41,6 +41,15 @@ async def lifespan(app: FastAPI):
         logger.info("Shutting down...")
 
 app = FastAPI(lifespan=lifespan)
+
+@app.get('/me')
+async def me(req: Request):
+    # X-Forwarded-User, X-Forwarded-Email, X-Forwarded-Preferred-Username and X-Forwarded-Groups
+    id = req.headers.get('X-Forwarded-User','anonymous')
+    username = req.headers.get('X-Forwarded-Preferred-Username','anonymous')
+    email = req.headers.get('X-Forwarded-Email','anonymous@gpf.fr')
+    groups = req.headers.get('X-Forwarded-Groups','').split(',')
+    return {"id": id, "username": username, "email": email, "groups": groups}
 
 @app.get('/health')
 async def health():
