@@ -260,7 +260,7 @@ with gr.Blocks(head=head,title="demo-geocontext") as demo:
             return "", history
 
         message_content = user_message.strip()
-        logging.info(f"user({thread_id}, {username}): {message_content}")
+        logger.info(f"user({thread_id}, {username}): {message_content}")
         return "", history + [{"role": "user", "content": message_content}]
 
     async def bot(history: list, thread_id: str):
@@ -273,7 +273,7 @@ with gr.Blocks(head=head,title="demo-geocontext") as demo:
 
         # required to invoke the graph with short term memory
         config = {"configurable": {"thread_id": thread_id}}
-        logging.debug(f"bot({thread_id} - {user_message})")
+        logger.debug(f"bot({thread_id} - {user_message})")
         async for event in graph.astream({"messages": [{"role": "user", "content": user_message}]}, config=config):
             logger.debug("Event:", event)
             
@@ -379,7 +379,7 @@ app = gr.mount_gradio_app(app, demo_share, path="/discussion")
 
 
 if __name__ == "__main__":
-    logging.info("Demo is running on http://localhost:8000")
+    logger.info("Demo is running on http://localhost:8000")
     uvicorn.run(
         app, 
         host="0.0.0.0", 
