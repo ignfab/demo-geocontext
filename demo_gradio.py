@@ -193,7 +193,7 @@ HTML_FOOTER=f"""
         Mentions légales
     </a>
     |
-    <a href="mailto:{CONTACT_EMAIL}?subject={urlib_quote(CONTACT_SUBJECT)}&body={urlib_quote(CONTACT_BODY)}" target="_blank">
+    <a title="{CONTACT_EMAIL}" href="mailto:{CONTACT_EMAIL}?subject={urlib_quote(CONTACT_SUBJECT)}&body={urlib_quote(CONTACT_BODY)}" target="_blank">
         Nous contacter
     </a>
 </div>
