@@ -1,0 +1,50 @@
+
+.demo-header {
+    display: flex;
+    padding: 8px 12px;
+    width: 100%;
+    box-sizing: border-box;
+    align-items: center;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    /* Force logo to take 20% of header width */
+    flex: 0 0 20%;
+    max-width: 20%;
+}
+
+.logo-container img {
+    /* Keep logo height but allow fluid resizing */
+    max-height: 50px;
+    height: auto;
+    width: auto;
+    display: block;
+}
+
+.info-container {
+    font-size: 1.1em;
+    /* Remainder of space (80%) */
+    flex: 1 1 80%;
+    max-width: 80%;
+    text-align: center;
+}
+
+/* Responsive: empile le logo et l'info sur petits écrans */
+@media (max-width: 600px) {
+    .demo-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .logo-container,
+    .info-container {
+        /* Full width stacked on mobile */
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    .info-container {
+        text-align: left;
+        margin-top: 8px;
+    }
+}
