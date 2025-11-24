@@ -18,7 +18,7 @@ class OlSimpleMap extends HTMLElement {
 
   static get observedAttributes() {
     return [
-      'lon', 'lat', 'zoom', 'background', 'data-url', 'fit-bounds',
+      'lon', 'lat', 'zoom', 'background', 'background-greyscale', 'data-url', 'fit-bounds',
       'width', 'height', 'min-width', 'min-height', 'max-width', 'max-height'
     ];
   }
@@ -36,7 +36,7 @@ class OlSimpleMap extends HTMLElement {
 
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
     if (oldValue !== newValue) {
-      if (['lon', 'lat', 'zoom', 'background'].includes(name) && this.map) {
+      if (['lon', 'lat', 'zoom', 'background', 'background-greyscale'].includes(name) && this.map) {
         this.updateMapView();
       } else if (['data-url', 'fit-bounds'].includes(name) && this.map) {
         this.loadVectorLayer();
@@ -70,7 +70,8 @@ class OlSimpleMap extends HTMLElement {
     const zoom = parseInt(this.getAttribute('zoom') || '2');
 
     const backgroundLayerName = this.getAttribute('background') || 'osm';
-    const backgroundLayer = getBackgroundLayer(backgroundLayerName);
+    const greyscale = this.getAttribute('background-greyscale') === 'true';
+    const backgroundLayer = getBackgroundLayer(backgroundLayerName, greyscale);
 
     const view = new View({
       center: fromLonLat([lon, lat]),
@@ -97,6 +98,17 @@ class OlSimpleMap extends HTMLElement {
     const view = this.map.getView();
     view.setCenter(fromLonLat([lon, lat]));
     view.setZoom(zoom);
+
+    // Mettre à jour la couche de fond si nécessaire
+    const backgroundLayerName = this.getAttribute('background') || 'osm';
+    const greyscale = this.getAttribute('background-greyscale') === 'true';
+    const backgroundLayer = getBackgroundLayer(backgroundLayerName, greyscale);
+    
+    // Remplacer la première couche (fond de carte)
+    const layers = this.map.getLayers();
+    if (layers.getLength() > 0) {
+      layers.setAt(0, backgroundLayer);
+    }
   }
 
   private updateStyles() {
