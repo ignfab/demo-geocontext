@@ -36,7 +36,7 @@ services:
 
   # allows to test oauth2-proxy on http://localhost:8001
   oauth2-proxy:
-    image: quay.io/oauth2-proxy/oauth2-proxy:latest
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.13.0-alpine
     command: ["/bin/oauth2-proxy", "--errors-to-info-log"]
     deploy:
       mode: replicated
@@ -58,6 +58,10 @@ services:
     #- OAUTH2_PROXY_GROUPS_CLAIM=groups
     # basic filtering
     - OAUTH2_PROXY_EMAIL_DOMAINS=*
+    # Proxy settings
+    - HTTP_PROXY
+    - HTTPS_PROXY
+    - NO_PROXY=${NO_PROXY:-127.0.0.1,localhost},site
     ports:
       - 8001:4180
     restart: unless-stopped

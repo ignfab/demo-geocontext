@@ -370,6 +370,7 @@ def get_gradio_user(request: Request):
     """Retrieve user for Gradio (available as request.username)"""
 
     user = get_current_user(request)
+    # TODO: check groups if needed and available in token
     return user.email
 
 
