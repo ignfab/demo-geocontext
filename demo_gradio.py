@@ -378,6 +378,14 @@ app = gr.mount_gradio_app(app, demo, path="/chatbot", auth_dependency=get_gradio
 app = gr.mount_gradio_app(app, demo_share, path="/discussion")
 
 
+class HealthCheckFilter(logging.Filter):
+    """Remove /health and /health/* from application server logs"""
+    def filter(self, record: logging.LogRecord) -> bool:
+        return record.getMessage().find("/health") == -1
+
+logging.getLogger("uvicorn.access").addFilter(HealthCheckFilter())
+
+
 if __name__ == "__main__":
     logger.info("Demo is running on http://localhost:8000")
     uvicorn.run(
