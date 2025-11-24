@@ -26,8 +26,13 @@ COPY uv.lock pyproject.toml .python-version ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --no-dev
 
+# Copy assets
+COPY assets ./assets
+# Copy dist files
 COPY front/dist ./front/dist
+# Copy python scripts
 COPY *.py .
+# Copy LICENSE
 COPY LICENSE .
 
 # uid=1000,gid=1000 in ubuntu:24.04
