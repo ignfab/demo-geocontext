@@ -21,7 +21,9 @@ def create_map(
     lat_attr = f'lat="{lat}"' if lat is not None else ""
     zoom_attr = f'zoom="{zoom}"' if zoom is not None else ""
     data_url_attr = f'data-url="{geojson_url}"' if geojson_url else ""
-    
+    width_attr="width=500px"
+    height_attr="height=500px"
+
     # Utiliser fit-bounds si lon, lat ou zoom ne sont pas définis et qu'il y a des données
     fit_bounds_attr = ""
     if geojson_url and (lon is None or lat is None or zoom is None):
@@ -34,7 +36,7 @@ def create_map(
         background_greyscale_attr = f'background-greyscale=false'
     
     # Construire la liste des attributs non vides
-    attributes = [attr for attr in [lon_attr, lat_attr, zoom_attr, f'background="{background}"', data_url_attr, fit_bounds_attr, background_greyscale_attr] if attr]
+    attributes = [attr for attr in [lon_attr, lat_attr, zoom_attr, width_attr, height_attr, f'background="{background}"', data_url_attr, fit_bounds_attr, background_greyscale_attr] if attr]
     attributes_str = " ".join(attributes)
 
     return f"<ol-simple-map {attributes_str}></ol-simple-map>"
