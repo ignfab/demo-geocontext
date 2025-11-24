@@ -20,6 +20,7 @@ Interactive demo for [ignfab/geocontext](https://github.com/ignfab/geocontext#re
 | GOOGLE_API_KEY    | Required from `google_genai:*` models (https://aistudio.google.com/api-keys)                                                                                                                                                                                                |                                      |
 | TEMPERATURE       | Model temperature                                                                                                                                                                                                                                                           | 0                                    |
 | DB_URI            | URL of the PostgreSQL (`postgresql://postgres:ChangeIt@localhost:5432/geocontext`) or Redis (ex : `redis://default:ChangeIt@localhost:6379/0`) database.                                                                                                                    | None (use InMemorySaver)             |
+| CONTACT_EMAIL     | Email for the contact button.                                                                                                                                                                                                                                               | "dev@localhost"                      |
 
 > Note that "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY" are supported if you have to use a corporate proxy.
 

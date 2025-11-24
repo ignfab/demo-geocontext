@@ -10,6 +10,7 @@ from fastapi import FastAPI,Request,Depends
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from auth import get_current_user, User
+from urllib.parse import quote as urlib_quote
 
 from db import create_database
 
@@ -180,10 +181,20 @@ HTML_HEAD = f"""
 <link rel="stylesheet" href="/assets/gradio.css"></link>
 """
 
-HTML_FOOTER="""
+CONTACT_EMAIL=os.getenv("CONTACT_EMAIL", "dev@localhost")
+CONTACT_SUBJECT="[demo-geocontext] Message de contact"
+CONTACT_BODY="""
+Merci de remplacer ce texte par votre message en incluant le lien de partage de la discussion si nécessaire.
+"""
+
+HTML_FOOTER=f"""
 <div style='text-align:center; margin-top: 20px;'>
     <a href="/mentions-legales" target="_blank">
         Mentions légales
+    </a>
+    |
+    <a href="mailto:{CONTACT_EMAIL}?subject={urlib_quote(CONTACT_SUBJECT)}&body={urlib_quote(CONTACT_BODY)}" target="_blank">
+        Nous contacter
     </a>
 </div>
 """
