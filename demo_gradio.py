@@ -410,9 +410,9 @@ def get_gradio_user(request: Request):
     # TODO: check groups if needed and available in token
     return user.email
 
-app = gr.mount_gradio_app(app, demo, path="/chatbot", auth_dependency=get_gradio_user)
-app = gr.mount_gradio_app(app, demo_share, path="/discussion")
-app = gr.mount_gradio_app(app, mentions_legales, path="/mentions-legales")
+app = gr.mount_gradio_app(app, demo, path="/chatbot", auth_dependency=get_gradio_user, show_api=False)
+app = gr.mount_gradio_app(app, demo_share, path="/discussion", show_api=False)
+app = gr.mount_gradio_app(app, mentions_legales, path="/mentions-legales", show_api=False)
 
 class HealthCheckFilter(logging.Filter):
     """Remove /health and /health/* from application server logs"""
