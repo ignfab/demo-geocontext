@@ -34,14 +34,15 @@ async def build_graph(checkpointer=InMemorySaver()) -> CompiledStateGraph:
     env = os.environ.copy()
     proxy_vars = ["HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"]
     proxy_env = {var: env[var] for var in proxy_vars if var in env}
-    
+    log_level = env.get("GEOCONTEXT_LOG_LEVEL", "error")
+
     client = MultiServerMCPClient(
         {
             "geocontext": {
                 "command": "npx",
                 "args": ["-y", "@ignfab/geocontext"],
                 "transport": "stdio",
-                "env": {**proxy_env, "LOG_LEVEL": "error"} if proxy_env else {"LOG_LEVEL": "error"}
+                "env": {**proxy_env, "LOG_LEVEL": log_level} if proxy_env else {"LOG_LEVEL": log_level}
             },
             "time": {
                 "command": "uvx",
