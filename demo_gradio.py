@@ -10,6 +10,7 @@ from fastapi import FastAPI,Request,Depends
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from auth import get_current_user, User
+from urllib.parse import quote as urlib_quote
 
 from db import create_database
 
@@ -174,18 +175,46 @@ async def load_conversation_history(thread_id: str):
 
 
 # https://openlayers-elements.netlify.app/
-head = f"""
+HTML_HEAD = f"""
 <script src="/front/demo-geocontext.min.js"></script>
 <link rel="stylesheet" href="/front/demo-geocontext.css"></link>
+<link rel="stylesheet" href="/assets/gradio.css"></link>
 """
 
-EXPLICATION = f"""
-<a href="https://www.ign.fr/" title="Institut national de l'information géographique et forestière" target="_blank">
-    <img src="/assets/logo-ign.png" alt="IGN"/>
-</a>
-Ce chatbot est une expérimentation conçue par les équipes de l’<a href="https://www.ign.fr" title="Institut national de l'information géographique et forestière" target="_blank">IGN</a>. Il facilite l’exploration 
-et l’utilisation des services de la Géoplateforme, en s’appuyant sur le serveur MCP <a href="https://github.com/ignfab/geocontext#readme" target="_blank">ignfab/geocontext</a>, également développé par l’IGN.
+CONTACT_EMAIL=os.getenv("CONTACT_EMAIL", "dev@localhost")
+CONTACT_SUBJECT="[demo-geocontext] Message de contact"
+CONTACT_BODY="""
+Merci de remplacer ce texte par votre message en incluant le lien de partage de la discussion si nécessaire.
+"""
 
+HTML_FOOTER=f"""
+<div style='text-align:center; margin-top: 20px;'>
+    <a href="/mentions-legales" target="_blank">
+        Mentions légales
+    </a>
+    |
+    <a title="{CONTACT_EMAIL}" href="mailto:{CONTACT_EMAIL}?subject={urlib_quote(CONTACT_SUBJECT)}&body={urlib_quote(CONTACT_BODY)}" target="_blank">
+        Nous contacter
+    </a>
+</div>
+"""
+
+HTML_HEADER="""
+<div class="demo-header">
+    <div class="logo-container">
+        <a href="https://www.ign.fr/" title="Institut national de l'information géographique et forestière" target="_blank">
+            <img src="/assets/logo-ign.png" alt="IGN"/>
+        </a>
+    </div>
+    <div class="info-container">
+        Ce chatbot est une expérimentation conçue par les équipes de l’<a href="https://www.ign.fr" title="Institut national de l'information géographique et forestière" target="_blank">IGN</a>. Il facilite l’exploration 
+        et l’utilisation des services de la Géoplateforme, en s’appuyant sur le serveur MCP <a href="https://github.com/ignfab/geocontext#readme" target="_blank">ignfab/geocontext</a>, également développé par l’IGN.    
+    </div>
+</header>
+"""
+
+
+EXPLANATION_DEMO = f"""
 Utilisez le champ de texte pour poser vos questions géographiques en langage naturel. Pour des exemples de requêtes, 
 consultez la section « Fonctionnalités » de [ignfab/geocontext - Fonctionnalités](https://github.com/ignfab/geocontext#fonctionnalit%C3%A9s).
 
@@ -198,10 +227,14 @@ consultez la section « Fonctionnalités » de [ignfab/geocontext - Fonctionnali
 """
 
 
-with gr.Blocks(head=head,title="demo-geocontext") as demo:
-    explication = gr.Markdown(
-        value=EXPLICATION
+with gr.Blocks(head=HTML_HEAD,title="demo-geocontext") as demo:
+    # Logo and header description
+    header = gr.Markdown(value=HTML_HEADER)
+    # demo explanation
+    explanation = gr.Markdown(
+        value=EXPLANATION_DEMO
     )
+    # Component for chatbot display
     chatbot = gr.Chatbot(
         type="messages", 
         label="demo-geocontext",
@@ -223,6 +256,8 @@ with gr.Blocks(head=head,title="demo-geocontext") as demo:
     share_output = gr.Markdown(value="", visible=True)
     # Button for new discussion
     new_discussion_btn = gr.Button("🆕 Nouvelle discussion", variant="secondary")
+    # Footer with legal mentions link
+    footer = gr.Markdown(value=HTML_FOOTER)
 
     async def initialize_chat(request: gr.Request, thread_id: str|None):
         """Initialise le chat avec l'historique existant si disponible"""
@@ -315,20 +350,18 @@ with gr.Blocks(head=head,title="demo-geocontext") as demo:
 
 # Chatbot in readonly mode
 
-EXPLICATION_RO = f"""
-<a href="https://www.ign.fr/" title="Institut national de l'information géographique et forestière" target="_blank">
-    <img src="/assets/logo-ign.png" alt="IGN"/>
-</a>
-Ce chatbot est une expérimentation conçue par les équipes de l’<a href="https://www.ign.fr" title="Institut national de l'information géographique et forestière" target="_blank">IGN</a>. Il facilite l’exploration 
-et l’utilisation des services de la Géoplateforme, en s’appuyant sur le serveur MCP <a href="https://github.com/ignfab/geocontext#readme" target="_blank">ignfab/geocontext</a>, également développé par l’IGN.
-
+EXPLANATION_DEMO_SHARE = f"""
 Vous consultez une discussion en lecture seule.
 """
 
-with gr.Blocks(head=head, title="demo-geocontext (lecture seule)") as demo_share:
-    explication = gr.Markdown(
-        value=EXPLICATION_RO
+with gr.Blocks(head=HTML_HEAD, title="demo-geocontext (lecture seule)") as demo_share:
+    # Logo and header description
+    header = gr.Markdown(value=HTML_HEADER)
+    # demo explanation
+    explanation = gr.Markdown(
+        value=EXPLANATION_DEMO_SHARE
     )
+    # Component for chatbot display
     chatbot = gr.Chatbot(
         type="messages", 
         label="demo-geocontext",
@@ -337,10 +370,12 @@ with gr.Blocks(head=head, title="demo-geocontext (lecture seule)") as demo_share
         resizable=True,
         sanitize_html=False
     )
-
+    # Link to chatbot main page
     chatbot_link = gr.Markdown(
         value="Accès au chatbot : [/chatbot](/chatbot)", visible=True
     )
+    # Footer with legal mentions link
+    footer = gr.Markdown(value=HTML_FOOTER)
 
     thread_state = gr.State(None)
 
@@ -362,6 +397,19 @@ with gr.Blocks(head=head, title="demo-geocontext (lecture seule)") as demo_share
     demo_share.load(initialize_chat, inputs=[], outputs=[chatbot, thread_state])
 
 
+# Yes... This is an abusive reuse of Gradio to serve a static markdown page :)
+# load pages/mentions-legales.md
+MENTION_LEGALES_PATH="pages/mentions-legales.md"
+with gr.Blocks(head=HTML_HEAD, title="demo-geocontext - mentions légales") as mentions_legales:
+    # Logo and header description
+    header = gr.Markdown(value=HTML_HEADER)
+
+    with open(MENTION_LEGALES_PATH, "r", encoding="utf-8") as f:
+        md_content = f.read()
+        md = gr.Markdown(
+            value=md_content
+        )
+
 @app.get("/")
 def redirect_to_gradio():
     return RedirectResponse(url=f"/chatbot")
@@ -373,10 +421,9 @@ def get_gradio_user(request: Request):
     # TODO: check groups if needed and available in token
     return user.email
 
-
-app = gr.mount_gradio_app(app, demo, path="/chatbot", auth_dependency=get_gradio_user)
-app = gr.mount_gradio_app(app, demo_share, path="/discussion")
-
+app = gr.mount_gradio_app(app, demo, path="/chatbot", auth_dependency=get_gradio_user, show_api=False)
+app = gr.mount_gradio_app(app, demo_share, path="/discussion", show_api=False)
+app = gr.mount_gradio_app(app, mentions_legales, path="/mentions-legales", show_api=False)
 
 class HealthCheckFilter(logging.Filter):
     """Remove /health and /health/* from application server logs"""

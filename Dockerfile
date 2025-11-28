@@ -26,9 +26,9 @@ COPY uv.lock pyproject.toml .python-version ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --no-dev
 
-# Copy assets
+# Copy static files
 COPY assets ./assets
-# Copy dist files
+COPY pages ./pages
 COPY front/dist ./front/dist
 # Copy python scripts
 COPY *.py .
