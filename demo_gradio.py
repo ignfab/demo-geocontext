@@ -218,13 +218,17 @@ EXPLANATION_DEMO = f"""
 Utilisez le champ de texte pour poser vos questions géographiques en langage naturel. Pour des exemples de requêtes, 
 consultez la section « Fonctionnalités » de [ignfab/geocontext - Fonctionnalités](https://github.com/ignfab/geocontext#fonctionnalit%C3%A9s).
 
+Ce service est utilisable uniquement avec un compte geoplateforme. <b>Tous vos messages et questions sont enregistrés pour raison de sécurité</b>
+
 <details>
-<summary>ATTENTION : <b>Ne pas fournir de données sensibles ou personnelles</b></summary>
+<summary>ATTENTION : <b>Ne pas fournir de données sensibles ou personnelles dans les messages</b></summary>
 
 - Les questions sont envoyées à un service tiers (LLM) pour être analysées et traitées.
 - Tous les messages sont enregistrés pour permettre une analyse des besoins des utilisateurs pour un tel service.
 </details>
 """
+
+
 
 
 with gr.Blocks(head=HTML_HEAD,title="demo-geocontext") as demo:
