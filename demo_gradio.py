@@ -229,8 +229,6 @@ Ce service est utilisable uniquement avec un compte geoplateforme. <b>Tous vos m
 """
 
 
-
-
 with gr.Blocks(head=HTML_HEAD,title="demo-geocontext") as demo:
     # Logo and header description
     header = gr.Markdown(value=HTML_HEADER)
