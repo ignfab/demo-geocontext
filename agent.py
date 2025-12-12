@@ -85,8 +85,7 @@ async def get_messages(graph: CompiledStateGraph, thread_id: str):
 
     config = {"configurable": {"thread_id": thread_id}}
     state = await graph.aget_state(config)
-
     if 'messages' in state.values:
         messages = state.values['messages']
         for message in messages:
-            yield message
+            yield message,state.created_at

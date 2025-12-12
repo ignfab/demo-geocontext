@@ -31,8 +31,8 @@ services:
     environment:
       - POSTGRES_USER=geocontext
       - POSTGRES_PASSWORD=${PGPASSWORD:-ChangeIt}
-    # ports:
-    #   - '5432:5432'
+    ports:
+       - '5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
