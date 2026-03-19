@@ -7,7 +7,7 @@ services:
         - https_proxy
     environment:
       - MODEL_NAME=${MODEL_NAME:-anthropic:claude-sonnet-4-6}
-      - TEMPERATURE=${TEMPERATURE:-0}
+      - TEMPERATURE=${TEMPERATURE:-0.0}
       - ANTHROPIC_API_KEY
       - GOOGLE_API_KEY
       - HTTP_PROXY
