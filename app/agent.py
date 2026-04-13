@@ -9,19 +9,8 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from langchain.chat_models import init_chat_model
 from langgraph.checkpoint.memory import InMemorySaver
 
+from .config import MODEL_NAME, TEMPERATURE
 from .tools import create_map
-
-# retrieve model name from environment variable or use default
-MODEL_NAME = os.getenv("MODEL_NAME", "anthropic:claude-sonnet-4-6")
-# retrieve temperature from environment variable or use default
-TEMPERATURE = float(os.getenv("TEMPERATURE", 0.0))
-# ensure that the required environment variable is set for anthropic models
-if MODEL_NAME.startswith("anthropic:"):
-    if os.getenv("ANTHROPIC_API_KEY", None) is None:
-        raise ValueError("ANTHROPIC_API_KEY environment variable is required for anthropic models")
-    if TEMPERATURE < 0 or TEMPERATURE > 1:
-        raise ValueError("TEMPERATURE must be between 0 and 1")
-
 
 logger.info(f"Create graph using model: {MODEL_NAME} with temperature: {TEMPERATURE}")
 model = init_chat_model(MODEL_NAME, temperature=TEMPERATURE)
