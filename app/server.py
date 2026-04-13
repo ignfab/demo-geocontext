@@ -1,6 +1,5 @@
 import os
 import uuid
-import json
 import logging
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 logger = logging.getLogger(__name__)
@@ -17,6 +16,7 @@ from .db import create_database
 
 import gradio as gr
 from .agent import build_graph, get_messages
+from .helpers.gradio import to_gradio_message
 
 def str2bool(v: str) -> bool :
   return str(v).lower() in ("yes", "true", "t", "1")
@@ -72,85 +72,6 @@ async def health_redis():
 app.mount("/front", StaticFiles(directory="front/dist"), name="front")
 # logos
 app.mount("/assets", StaticFiles(directory="assets"), name="assets")
-
-def to_gradio_message(message):
-    """Convertit un message dans un format JSON compatible avec Gradio Chatbot"""
-    
-    logger.debug(f"to_gradio_message({type(message)} - {message.type})")
-    if not hasattr(message, 'content') or not message.content:
-        logger.warning(f"to_gradio_message({type(message)}) - no content")
-        logger.warning(f"last_message: {message.pretty_print()}")
-        return None
-
-    # Extraire le contenu textuel
-    text_content = ""
-    if isinstance(message.content, str):
-        text_content = message.content
-    elif isinstance(message.content, list):
-        # Extraire le texte des blocks de contenu
-        text_parts = []
-        for block in message.content:
-            if isinstance(block, dict) and block.get('type') == 'text':
-                text_parts.append(block.get('text', ''))
-            elif isinstance(block, dict) and block.get('type') == 'tool_use':
-                # Afficher les appels d'outils de manière lisible
-                tool_name = block.get('name', 'unknown')
-                tool_args = block.get('input', {})
-                text_parts.append(f"🔧 Appel outil: {tool_name}({tool_args})")
-        text_content = "\n".join(text_parts)
-    else:
-        logger.warning(f"to_gradio_message({type(message)}) - unknown content type")
-        logger.warning(f"message: {message.pretty_print()}")
-        return None
-
-    # Ajouter un nouveau message pour chaque type d'événement
-    if message.type == "human":
-        return {
-            "role": "user", 
-            "content": f"{text_content}"
-        }
-    elif message.type == "ai":
-        # Ajouter la réflexion du modèle
-        return {
-            "role": "assistant", 
-            "content": f"{text_content}", 
-            #"metadata": {"title": "💭 Réflexion"}
-        }
-    elif message.type == "tool":
-        tool_title = "📊 Résultat outil"
-        if "<ol-simple-map" in text_content:
-            tool_title = "🗺️ Carte"
-        # Si c'est du JSON valide, le formater avec coloration syntaxique
-        try:
-            parsed_json = json.loads(text_content)
-            formatted_json = json.dumps(parsed_json, indent=2, ensure_ascii=False)
-            content = f"""
-<details>
-<summary>📊 Réponse JSON</summary>
-
-```json
-{formatted_json}
-```
-</details>
-                """
-
-            return {
-                "role": "assistant", 
-                "content": f"{content}", 
-                "metadata": {"title": tool_title}
-            }
-        except (json.JSONDecodeError, TypeError):
-            return {
-                "role": "assistant", 
-                "content": f"{text_content}", 
-                "metadata": {"title": tool_title}
-            }
-    else:
-        # Autres types de nœuds
-        return {
-            "role": "assistant", 
-            "content": f"[{message.type}] {text_content}"
-        }
 
 
 async def load_conversation_history(thread_id: str):
