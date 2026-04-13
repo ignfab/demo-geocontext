@@ -9,13 +9,13 @@ import uvicorn
 from fastapi import FastAPI,Request,Depends
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from auth import get_current_user, User
+from .auth import get_current_user, User
 from urllib.parse import quote as urlib_quote
 
-from db import create_database
+from .db import create_database
 
 import gradio as gr
-from agent import build_graph, get_messages
+from .agent import build_graph, get_messages
 
 def str2bool(v: str) -> bool :
   return str(v).lower() in ("yes", "true", "t", "1")
@@ -445,5 +445,4 @@ if __name__ == "__main__":
         timeout_keep_alive=5,  # Ferme les connexions keep-alive après 5 secondes
         timeout_graceful_shutdown=10,  # Timeout gracieux de 10 secondes
     )
-
 

@@ -40,7 +40,7 @@ export MODEL_NAME="anthropic:claude-sonnet-4-6"
 export ANTHROPIC_API_KEY="YourApiKey"
 
 # start demo on http://localhost:8000/ :
-uv run demo_gradio.py
+uv run python -m app.demo_gradio
 ```
 
 ### With uv on Windows
@@ -53,7 +53,7 @@ $env:MODEL_NAME="anthropic:claude-sonnet-4-6"
 $env:ANTHROPIC_API_KEY="YourApiKey"
 
 # start demo on http://localhost:8000/
-uv run demo_gradio.py
+uv run python -m app.demo_gradio
 ```
 
 ### With docker

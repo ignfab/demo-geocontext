@@ -41,4 +41,3 @@ def create_map(
 
     return f"<ol-simple-map {attributes_str}></ol-simple-map>"
 
-
