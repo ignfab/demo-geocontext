@@ -3,7 +3,7 @@ import uuid
 import json
 import logging
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
-logger = logging.getLogger("demo_gradio")
+logger = logging.getLogger(__name__)
 
 import uvicorn
 from fastapi import FastAPI,Request,Depends

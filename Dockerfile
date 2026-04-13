@@ -48,4 +48,4 @@ ENV GRADIO_ANALYTICS_ENABLED="False"
 
 ENV PATH="/app/.venv/bin:$PATH"
 EXPOSE 8000
-CMD ["python", "-m", "app.demo_gradio"]
+CMD ["python", "-m", "app.server"]

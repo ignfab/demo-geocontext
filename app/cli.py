@@ -2,7 +2,7 @@ import os
 import asyncio
 import logging
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
-logger = logging.getLogger("demo_cli")
+logger = logging.getLogger(__name__)
 
 from .agent import build_graph
 
