@@ -9,7 +9,8 @@ import uvicorn
 from fastapi import FastAPI,Request,Depends
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from .auth import get_current_user, User
+from .models import User
+from .services.auth import get_current_user
 from urllib.parse import quote as urlib_quote
 
 from .db import create_database
