@@ -4,7 +4,7 @@ import logging
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 logger = logging.getLogger(__name__)
 
-from .agent import build_graph
+from .services.agent import get_agent
 
 async def stream_graph_updates(graph, user_input: str):
     """Process user message by printing the result"""
@@ -24,7 +24,7 @@ async def stream_graph_updates(graph, user_input: str):
 async def main():
     try:
         print("Loading graph, please wait...")
-        graph = await build_graph()
+        graph = await get_agent()
         # loop prompt until user wants to exit
         print("Welcome to the demo-geocontext CLI! Type a message and press Enter to send it. Use 'quit', 'exit', or 'q' to exit.")
         user_input = input("User: ")

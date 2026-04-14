@@ -15,7 +15,7 @@ from urllib.parse import quote as urlib_quote
 from .db import create_database
 
 import gradio as gr
-from .agent import build_graph, get_messages
+from .services.agent import get_agent, get_messages
 from .helpers.gradio import to_gradio_message
 
 def str2bool(v: str) -> bool :
@@ -39,7 +39,7 @@ async def lifespan(app: FastAPI):
     async with create_database() as db:
         logger.info("Build graph...")
         database = db
-        graph = await build_graph(checkpointer=database.checkpointer)
+        graph = await get_agent(checkpointer=database.checkpointer)
         yield
         logger.info("Shutting down...")
 
