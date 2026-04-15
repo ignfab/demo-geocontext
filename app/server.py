@@ -10,9 +10,8 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from .models import User
 from .services.auth import get_current_user
+from .services.db import get_database
 from urllib.parse import quote as urlib_quote
-
-from .db import create_database
 
 import gradio as gr
 from .services.agent import get_agent, get_messages
@@ -22,8 +21,6 @@ def str2bool(v: str) -> bool :
   return str(v).lower() in ("yes", "true", "t", "1")
 
 
-# database holding the checkpointer
-database = None
 # the graph instance
 graph = None
 
@@ -31,17 +28,14 @@ from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global database
     global graph
 
     logger.info("Starting up...")
-    logger.info("Create Database...")
-    async with create_database() as db:
-        logger.info("Build graph...")
-        database = db
-        graph = await get_agent(checkpointer=database.checkpointer)
+    async with get_agent() as g:
+        graph = g
         yield
-        logger.info("Shutting down...")
+    graph = None
+    logger.info("Shutting down...")
 
 app = FastAPI(lifespan=lifespan)
 
@@ -57,9 +51,15 @@ async def health():
 
 @app.get('/health/db')
 async def health_redis():
-    global database
+    try:
+        db = get_database()
+    except RuntimeError:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "error", "message": "database is not ready"},
+        )
 
-    healthy = await database.is_healthy()
+    healthy = await db.is_healthy()
     if healthy:
         return {"status": "ok", "message": "connected"} 
     else:

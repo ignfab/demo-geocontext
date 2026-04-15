@@ -24,14 +24,13 @@ async def stream_graph_updates(graph, user_input: str):
 async def main():
     try:
         print("Loading graph, please wait...")
-        graph = await get_agent()
-        # loop prompt until user wants to exit
-        print("Welcome to the demo-geocontext CLI! Type a message and press Enter to send it. Use 'quit', 'exit', or 'q' to exit.")
-        user_input = input("User: ")
-        if user_input.lower() in ["quit", "exit", "q"]:
-            print("Goodbye!")
-            return 0
-        await stream_graph_updates(graph, user_input)
+        async with get_agent() as graph:
+            print("Welcome to the demo-geocontext CLI! Type a message and press Enter to send it. Use 'quit', 'exit', or 'q' to exit.")
+            user_input = input("User: ")
+            if user_input.lower() in ["quit", "exit", "q"]:
+                print("Goodbye!")
+                return 0
+            await stream_graph_updates(graph, user_input)
     except Exception as e:
         print(f"Erreur: {e}")
         return 1

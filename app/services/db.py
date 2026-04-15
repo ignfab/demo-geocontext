@@ -1,26 +1,25 @@
+"""Checkpointers LangGraph (mémoire, Redis, Postgres), create_database, database_lifecycle, get_database."""
+
 import logging
-logger = logging.getLogger(__name__)
-
 import os
-
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
 from langgraph.checkpoint.memory import InMemorySaver
-
-from redis.asyncio import Redis
-from langgraph.checkpoint.redis.aio import AsyncRedisSaver
-
-from psycopg_pool import AsyncConnectionPool
-from psycopg import AsyncConnection
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+from langgraph.checkpoint.redis.aio import AsyncRedisSaver
+from psycopg import AsyncConnection
+from psycopg_pool import AsyncConnectionPool
+from redis.asyncio import Redis
 
-DB_URI = os.getenv("DB_URI",None)
+from ..config import DB_URI
+
+logger = logging.getLogger(__name__)
+
 
 class BaseDatabase:
-    def __init__(self, checkpointer: InMemorySaver|AsyncRedisSaver|AsyncPostgresSaver):
+    def __init__(self, checkpointer: InMemorySaver | AsyncRedisSaver | AsyncPostgresSaver):
         self.checkpointer = checkpointer
-        pass
 
     async def is_healthy(self) -> bool:
         raise NotImplementedError("is_healthy method must be implemented by subclasses")
@@ -44,7 +43,7 @@ class RedisDatabase(BaseDatabase):
             pong = await self.redis_client.ping()
             return pong is True
         except Exception as e:
-            logger.error(f"Redis health check failed: {e}")
+            logger.error("Redis health check failed: %s", e)
             return False
 
 
@@ -60,15 +59,15 @@ class PostgresDatabase(BaseDatabase):
                 result = await cursor.fetchone()
                 return result is not None and result[0] == 1
         except Exception as e:
-            logger.error(f"PostgreSQL health check failed: {e}")
+            logger.error("PostgreSQL health check failed: %s", e)
             return False
 
+
 @asynccontextmanager
-async def create_database() -> AsyncIterator[BaseDatabase]:
+async def get_database() -> AsyncIterator[BaseDatabase]:
     if DB_URI is None or DB_URI == "":
         logger.info("create InMemoryDatabase as DB_URI is not defined")
         yield InMemoryDatabase(checkpointer=InMemorySaver())
-    # Use Redis ?
     elif DB_URI.startswith("redis://"):
         logger.debug("create Redis client...")
         redis_client = Redis.from_url(DB_URI)
@@ -78,15 +77,13 @@ async def create_database() -> AsyncIterator[BaseDatabase]:
         await checkpointer.asetup()
         logger.info("RedisDatabase created")
         yield RedisDatabase(redis_client=redis_client, checkpointer=checkpointer)
-    # Use PostgresSQL?
     elif DB_URI.startswith("postgresql://"):
         logger.info("create AsyncConnectionPool for PostgreSQL...")
         connection_kwargs = {
             "autocommit": True,
             "prepare_threshold": 0,
-            #"row_factory": dict_row,
         }
-        async with AsyncConnectionPool(DB_URI,kwargs=connection_kwargs) as pool:
+        async with AsyncConnectionPool(DB_URI, kwargs=connection_kwargs) as pool:
             logger.debug("create connection...")
             async with pool.connection(timeout=5) as conn:
                 logger.debug("create AsyncPostgresSaver...")
@@ -94,11 +91,9 @@ async def create_database() -> AsyncIterator[BaseDatabase]:
                 logger.debug("setup AsyncPostgresSaver...")
                 await checkpointer.setup()
                 logger.debug("PostgresDatabase created")
-                yield PostgresDatabase(conn=conn,checkpointer=checkpointer)
-    # Default to in-memory database
+                yield PostgresDatabase(conn=conn, checkpointer=checkpointer)
     else:
-        error_message = f"Invalid DB_URI (not starting with redis:// or postgresql://)"
-        raise RuntimeError(error_message)
+        raise RuntimeError("Invalid DB_URI (not starting with redis:// or postgresql://)")
 
 
 async def get_thread_ids(checkpointer: AsyncRedisSaver) -> list[str]:
@@ -109,13 +104,13 @@ async def get_thread_ids(checkpointer: AsyncRedisSaver) -> list[str]:
         logger.info("get_thread_ids(checkpointer) ...")
         async for checkpoint_tuple in checkpointer.alist({}):
             config = checkpoint_tuple.config
-            if 'configurable' in config and 'thread_id' in config['configurable']:
-                thread_id = config['configurable']['thread_id']
+            if "configurable" in config and "thread_id" in config["configurable"]:
+                thread_id = config["configurable"]["thread_id"]
                 if thread_id and thread_id not in thread_ids:
                     thread_ids.append(thread_id)
     except Exception as e:
-        logger.warning(f"Fail to retrieve thread ids from checkpointer: {e}")
-    
+        logger.warning("Fail to retrieve thread ids from checkpointer: %s", e)
+
     logger.debug("get_thread_ids(checkpointer) - sort and return thread_ids...")
     thread_ids.sort()
     return thread_ids

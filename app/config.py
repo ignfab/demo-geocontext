@@ -6,6 +6,9 @@ TEMPERATURE = float(os.getenv("TEMPERATURE", 0.0))
 if TEMPERATURE < 0 or TEMPERATURE > 1:
     raise ValueError("TEMPERATURE must be between 0 and 1")
 
+# 
+DB_URI = os.getenv("DB_URI", None)
+
 
 def check_api_key(*, model_name: str | None = None) -> None:
     """Raise if the model requires an API key that is missing from the environment."""
