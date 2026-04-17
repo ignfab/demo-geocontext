@@ -96,11 +96,15 @@ async def load_conversation_history(thread_id: str):
     return history
 
 
-# https://openlayers-elements.netlify.app/
-HTML_HEAD = f"""
+# Web component <ol-simple-map> (bundle Vite en UMD : front/vite.config.ts → demo-geocontext.min.js).
+# Sous Gradio 6, le contenu à injecter dans <head> ne doit plus être passé à gr.Blocks(...),
+# mais à chaque gr.mount_gradio_app(..., head=HTML_HEAD) pour que le script enregistre
+# l’élément avant le rendu du chat (Markdown/HTML des messages).
+# Réf. composants : https://openlayers-elements.netlify.app/
+HTML_HEAD = """
 <script src="/front/demo-geocontext.min.js"></script>
-<link rel="stylesheet" href="/front/demo-geocontext.css"></link>
-<link rel="stylesheet" href="/assets/gradio.css"></link>
+<link rel="stylesheet" href="/front/demo-geocontext.css" />
+<link rel="stylesheet" href="/assets/gradio.css" />
 """
 
 CONTACT_EMAIL=os.getenv("CONTACT_EMAIL", "dev@localhost")
@@ -151,7 +155,7 @@ Ce service est utilisable uniquement avec un compte geoplateforme. <b>Tous vos m
 """
 
 
-with gr.Blocks(head=HTML_HEAD,title="demo-geocontext") as demo:
+with gr.Blocks(title="demo-geocontext") as demo:
     # Logo and header description
     header = gr.Markdown(value=HTML_HEADER)
     # demo explanation
@@ -160,12 +164,10 @@ with gr.Blocks(head=HTML_HEAD,title="demo-geocontext") as demo:
     )
     # Component for chatbot display
     chatbot = gr.Chatbot(
-        type="messages", 
         label="demo-geocontext",
-        show_copy_button=True,
-        show_copy_all_button=True,
+        buttons=["copy", "copy_all"],
         resizable=True,
-        sanitize_html=False,
+        # sanitize_html=False,
     )
 
     # Component for user message
@@ -278,7 +280,7 @@ EXPLANATION_DEMO_SHARE = f"""
 Vous consultez une discussion en lecture seule.
 """
 
-with gr.Blocks(head=HTML_HEAD, title="demo-geocontext (lecture seule)") as demo_share:
+with gr.Blocks(title="demo-geocontext (lecture seule)") as demo_share:
     # Logo and header description
     header = gr.Markdown(value=HTML_HEADER)
     # demo explanation
@@ -287,12 +289,10 @@ with gr.Blocks(head=HTML_HEAD, title="demo-geocontext (lecture seule)") as demo_
     )
     # Component for chatbot display
     chatbot = gr.Chatbot(
-        type="messages", 
         label="demo-geocontext",
-        show_copy_button=True,
-        show_copy_all_button=True,
+        buttons=["copy", "copy_all"],
         resizable=True,
-        sanitize_html=False
+        # sanitize_html=False,
     )
     # Link to chatbot main page
     chatbot_link = gr.Markdown(
@@ -324,7 +324,7 @@ with gr.Blocks(head=HTML_HEAD, title="demo-geocontext (lecture seule)") as demo_
 # Yes... This is an abusive reuse of Gradio to serve a static markdown page :)
 # load pages/mentions-legales.md
 MENTION_LEGALES_PATH="pages/mentions-legales.md"
-with gr.Blocks(head=HTML_HEAD, title="demo-geocontext - mentions légales") as mentions_legales:
+with gr.Blocks(title="demo-geocontext - mentions légales") as mentions_legales:
     # Logo and header description
     header = gr.Markdown(value=HTML_HEADER)
 
@@ -345,9 +345,28 @@ def get_gradio_user(request: Request):
     # TODO: check groups if needed and available in token
     return user.email
 
-app = gr.mount_gradio_app(app, demo, path="/chatbot", auth_dependency=get_gradio_user, show_api=False)
-app = gr.mount_gradio_app(app, demo_share, path="/discussion", show_api=False)
-app = gr.mount_gradio_app(app, mentions_legales, path="/mentions-legales", show_api=False)
+app = gr.mount_gradio_app(
+    app,
+    demo,
+    path="/chatbot",
+    head=HTML_HEAD,
+    auth_dependency=get_gradio_user,
+    footer_links=["gradio", "settings"],
+)
+app = gr.mount_gradio_app(
+    app,
+    demo_share,
+    path="/discussion",
+    head=HTML_HEAD,
+    footer_links=["gradio", "settings"],
+)
+app = gr.mount_gradio_app(
+    app,
+    mentions_legales,
+    path="/mentions-legales",
+    head=HTML_HEAD,
+    footer_links=["gradio", "settings"],
+)
 
 class HealthCheckFilter(logging.Filter):
     """Remove /health and /health/* from application server logs"""

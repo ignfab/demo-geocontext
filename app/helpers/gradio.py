@@ -1,5 +1,6 @@
 import json
 import logging
+import gradio as gr
 
 logger = logging.getLogger(__name__)
 
@@ -48,9 +49,15 @@ def to_gradio_message(message):
             # "metadata": {"title": "💭 Réflexion"}
         }
     elif message.type == "tool":
-        tool_title = "📊 Résultat outil"
+        # Si c'est une carte, l'afficher dans un bloc dédié
         if "<ol-simple-map" in text_content:
-            tool_title = "🗺️ Carte"
+            return {
+                "role": "assistant",
+                "content": gr.HTML(text_content),
+                "metadata": {"title": "🗺️ Carte"},
+            }
+
+        tool_title = "📊 Résultat outil"
         # Si c'est du JSON valide, le formater avec coloration syntaxique
         try:
             parsed_json = json.loads(text_content)
