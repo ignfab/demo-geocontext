@@ -1,3 +1,4 @@
+import json
 import os
 from typing import Any
 
@@ -23,7 +24,16 @@ def _proxy_env() -> dict[str, str]:
 
 
 def get_mcp_servers_config() -> dict[str, dict[str, Any]]:
-    """MCP server configuration for MultiServerMCPClient."""
+    """MCP server configuration for MultiServerMCPClient.
+
+    If MCP_SERVERS_CONFIG_PATH is set, the JSON file at that path is loaded and
+    returned directly, overriding the built-in defaults.
+    """
+    config_path = os.environ.get("MCP_SERVERS_CONFIG_PATH", None)
+    if config_path is not None:
+        with open(config_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+
     proxy = _proxy_env()
     log_level = os.environ.get("GEOCONTEXT_LOG_LEVEL", "error")
     geocontext_env = {"LOG_LEVEL": log_level, **proxy}
