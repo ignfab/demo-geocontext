@@ -2,8 +2,9 @@ import logging
 from contextlib import asynccontextmanager
 from typing import Any, AsyncIterator
 
+from langchain.agents.middleware import ToolRetryMiddleware
+from langchain_core.tools import ToolException
 from langchain_mcp_adapters.client import MultiServerMCPClient
-from langchain_mcp_adapters.tools import load_mcp_tools
 
 from ..config import get_mcp_servers_config
 
@@ -16,6 +17,22 @@ from ..tools import create_map
 from .db import get_database
 
 logger = logging.getLogger(__name__)
+
+
+def format_tool_error(exc: Exception) -> str:
+    """Format a recoverable tool error for the model."""
+
+    # Only MCP tool-result errors should be recoverable by the model. Protocol,
+    # transport, or session errors must still bubble up as hard failures.
+    if not isinstance(exc, ToolException):
+        raise exc
+
+    logger.warning("Tool failed: %s", exc, exc_info=True)
+    return (
+        f"Erreur lors de l'appel de l'outil: {exc}\n\n"
+        "Corrige les arguments de l'outil et réessaie si possible."
+    )
+
 
 @asynccontextmanager
 async def get_agent() -> AsyncIterator[CompiledStateGraph]:
@@ -40,7 +57,13 @@ async def get_agent() -> AsyncIterator[CompiledStateGraph]:
             model=model,
             tools=tools,
             checkpointer=db.checkpointer,
-            #system_prompt=SYSTEM_PROMPT,
+            middleware=[
+                ToolRetryMiddleware(
+                    max_retries=0,
+                    retry_on=(ToolException,),
+                    on_failure=format_tool_error,
+                )
+            ],
         )
 
         logger.info(f"Agent created successfully")
