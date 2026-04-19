@@ -14,7 +14,9 @@ def create_map(
         geojson_url: URL to a GeoJSON file to overlay on the map (optional)
         background: background layer name (default: "osm", can also use "gpf:GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2" for IGN France)
 
-    Important: Don't create a map unless the user asks for it.
+    Important:
+    - Don't create a map unless the user asks for it.
+    - The tool supports a single layer of GeoJSON data (do not try to pass multiple URL in a single call).
     """
     # Construire les attributs optionnels
     lon_attr = f'lon="{lon}"' if lon is not None else ""
