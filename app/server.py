@@ -228,9 +228,20 @@ with gr.Blocks(title="demo-geocontext") as demo:
         """answer the last user message in history by invoking the agent"""
 
         global graph
-        
-        # retrieve the last user message
-        user_message = history[-1]['content']
+
+        if not history:
+            yield history
+            return
+
+        last_message = history[-1]
+        if not isinstance(last_message, dict) or last_message.get("role") != "user":
+            yield history
+            return
+
+        user_message = str(last_message.get("content", "")).strip()
+        if user_message == "":
+            yield history
+            return
 
         # required to invoke the graph with short term memory
         config = {"configurable": {"thread_id": thread_id}}
