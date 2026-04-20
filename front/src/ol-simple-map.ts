@@ -155,17 +155,20 @@ class OlSimpleMap extends HTMLElement {
 
     // Créer une nouvelle source vectorielle
     const vectorSource = new VectorSource({
-      loader: async (extent: Extent, resolution: number, projection: Projection) => {
-        try {
-          const geojson = await getFeatureFromURL(dataUrl);
-          return new GeoJSON().readFeatures(geojson, {
-            featureProjection: projection
+      loader: (extent: Extent, _resolution: number, projection: Projection, success, failure) => {
+        getFeatureFromURL(dataUrl)
+          .then((geojson) => {
+            const features = new GeoJSON().readFeatures(geojson, {
+              featureProjection: projection
+            });
+            vectorSource.addFeatures(features);
+            success?.(features);
+          })
+          .catch((error) => {
+            vectorSource.removeLoadedExtent(extent);
+            failure?.();
+            console.error(error);
           });
-        } catch (error) {
-          vectorSource.removeLoadedExtent(extent);
-          console.error(error);
-          return [];
-        }
       },
       strategy: () => [[-Infinity, -Infinity, Infinity, Infinity]]
     });

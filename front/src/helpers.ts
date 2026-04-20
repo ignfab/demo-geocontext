@@ -29,10 +29,11 @@ function getGeoplateformeUrlTMS(layerName: string) {
  */
 export async function getFeaturesFromGeoplateformeWFS(url: string): Promise<any> {
     const queryParams = new URLSearchParams(url.split('?')[1]);
-    const cqlFilter = queryParams.get('cql_filter');
+    const cqlFilter = queryParams.get('cql_filter') ?? queryParams.get('CQL_FILTER');
     if ( cqlFilter ) {
         // Use POST request with cql_filter in body to avoid too-long GET URLs (issue #57)
         queryParams.delete('cql_filter');
+        queryParams.delete('CQL_FILTER');
         const baseUrl = url.split('?')[0] + '?' + queryParams.toString();
         const body = 'cql_filter=' + encodeURIComponent(cqlFilter);
         const response = await fetch(baseUrl, {
