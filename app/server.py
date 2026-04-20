@@ -50,7 +50,7 @@ async def health():
     return {"status": "ok", "message": "app is running"}
 
 @app.get('/health/db')
-async def health_redis():
+async def health_db():
     try:
         healthy = await is_database_healthy()
     except RuntimeError:

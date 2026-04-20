@@ -12,7 +12,6 @@ dependencies = [
     "langchain-anthropic>=1.4.1",
     "langchain-google-genai>=4.2.2",
     "langchain-ollama>=1.1.0",
-    "langgraph-checkpoint-redis>=0.4.1",
     "langgraph-checkpoint-postgres>=3.0.5",
     "langgraph>=1.1.8",
     "psycopg[binary,pool]>=3.3.3",
