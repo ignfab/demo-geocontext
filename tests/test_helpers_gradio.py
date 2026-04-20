@@ -30,6 +30,18 @@ def test_to_gradio_message_ai_string() -> None:
     assert out == {"role": "assistant", "content": "Hi there"}
 
 
+def test_to_gradio_message_ai_only_map_markup_returns_none() -> None:
+    text = '<ol-simple-map lon="3.28274" lat="47.368178"></ol-simple-map>'
+    out = to_gradio_message(_message("ai", text))
+    assert out is None
+
+
+def test_to_gradio_message_ai_text_with_map_markup_keeps_text() -> None:
+    text = "Voici la carte:\n<ol-simple-map lon=\"3.28274\" lat=\"47.368178\"></ol-simple-map>"
+    out = to_gradio_message(_message("ai", text))
+    assert out == {"role": "assistant", "content": "Voici la carte:"}
+
+
 def test_to_gradio_message_list_text_and_tool_use() -> None:
     content = [
         {"type": "text", "text": "Part one"},

@@ -1,8 +1,16 @@
 import json
 import logging
+import re
 import gradio as gr
 
 logger = logging.getLogger(__name__)
+
+# TODO: This is a very hacky way to remove map HTML from assistant messages.
+# We should ideally have a better way to separate map content from text content in the message structure.
+_MAP_TAG_RE = re.compile(
+    r"<ol-simple-map\b[^>]*>(?:\s*</ol-simple-map>)?",
+    flags=re.IGNORECASE | re.DOTALL,
+)
 
 
 def to_gradio_message(message):
@@ -42,10 +50,14 @@ def to_gradio_message(message):
             "content": f"{text_content}",
         }
     elif message.type == "ai":
-        # Ajouter la réflexion du modèle
+        # TODO : A dirty hack for now to avoid showing raw map HTML in assistant text. 
+        # We should ideally have a better way to separate map content from text content in the message structure.
+        cleaned_text = _MAP_TAG_RE.sub("", text_content).strip()
+        if cleaned_text == "":
+            return None
         return {
             "role": "assistant",
-            "content": f"{text_content}",
+            "content": f"{cleaned_text}",
             # "metadata": {"title": "💭 Réflexion"}
         }
     elif message.type == "tool":
