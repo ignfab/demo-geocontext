@@ -1,6 +1,6 @@
 [project]
 name = "demo-geocontext"
-version = "0.1.0"
+version = "0.1.7"
 description = "Interactive demo for ignfab/geocontext"
 readme = "README.md"
 requires-python = ">=3.13"
