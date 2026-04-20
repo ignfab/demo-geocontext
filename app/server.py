@@ -1,28 +1,26 @@
 import os
 import uuid
-import json
 import logging
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
-logger = logging.getLogger("demo_gradio")
+logger = logging.getLogger(__name__)
 
 import uvicorn
 from fastapi import FastAPI,Request,Depends
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from auth import get_current_user, User
+from .models import User
+from .services.auth import get_current_user
+from .services.db import is_database_healthy
 from urllib.parse import quote as urlib_quote
 
-from db import create_database
-
 import gradio as gr
-from agent import build_graph, get_messages
+from .services.agent import get_agent, get_messages
+from .helpers.gradio import to_gradio_message
 
 def str2bool(v: str) -> bool :
   return str(v).lower() in ("yes", "true", "t", "1")
 
 
-# database holding the checkpointer
-database = None
 # the graph instance
 graph = None
 
@@ -30,17 +28,14 @@ from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global database
     global graph
 
     logger.info("Starting up...")
-    logger.info("Create Database...")
-    async with create_database() as db:
-        logger.info("Build graph...")
-        database = db
-        graph = await build_graph(checkpointer=database.checkpointer)
+    async with get_agent() as g:
+        graph = g
         yield
-        logger.info("Shutting down...")
+    graph = None
+    logger.info("Shutting down...")
 
 app = FastAPI(lifespan=lifespan)
 
@@ -56,9 +51,14 @@ async def health():
 
 @app.get('/health/db')
 async def health_redis():
-    global database
+    try:
+        healthy = await is_database_healthy()
+    except RuntimeError:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "error", "message": "database is not ready"},
+        )
 
-    healthy = await database.is_healthy()
     if healthy:
         return {"status": "ok", "message": "connected"} 
     else:
@@ -71,85 +71,6 @@ async def health_redis():
 app.mount("/front", StaticFiles(directory="front/dist"), name="front")
 # logos
 app.mount("/assets", StaticFiles(directory="assets"), name="assets")
-
-def to_gradio_message(message):
-    """Convertit un message dans un format JSON compatible avec Gradio Chatbot"""
-    
-    logger.debug(f"to_gradio_message({type(message)} - {message.type})")
-    if not hasattr(message, 'content') or not message.content:
-        logger.warning(f"to_gradio_message({type(message)}) - no content")
-        logger.warning(f"last_message: {message.pretty_print()}")
-        return None
-
-    # Extraire le contenu textuel
-    text_content = ""
-    if isinstance(message.content, str):
-        text_content = message.content
-    elif isinstance(message.content, list):
-        # Extraire le texte des blocks de contenu
-        text_parts = []
-        for block in message.content:
-            if isinstance(block, dict) and block.get('type') == 'text':
-                text_parts.append(block.get('text', ''))
-            elif isinstance(block, dict) and block.get('type') == 'tool_use':
-                # Afficher les appels d'outils de manière lisible
-                tool_name = block.get('name', 'unknown')
-                tool_args = block.get('input', {})
-                text_parts.append(f"🔧 Appel outil: {tool_name}({tool_args})")
-        text_content = "\n".join(text_parts)
-    else:
-        logger.warning(f"to_gradio_message({type(message)}) - unknown content type")
-        logger.warning(f"message: {message.pretty_print()}")
-        return None
-
-    # Ajouter un nouveau message pour chaque type d'événement
-    if message.type == "human":
-        return {
-            "role": "user", 
-            "content": f"{text_content}"
-        }
-    elif message.type == "ai":
-        # Ajouter la réflexion du modèle
-        return {
-            "role": "assistant", 
-            "content": f"{text_content}", 
-            #"metadata": {"title": "💭 Réflexion"}
-        }
-    elif message.type == "tool":
-        tool_title = "📊 Résultat outil"
-        if "<ol-simple-map" in text_content:
-            tool_title = "🗺️ Carte"
-        # Si c'est du JSON valide, le formater avec coloration syntaxique
-        try:
-            parsed_json = json.loads(text_content)
-            formatted_json = json.dumps(parsed_json, indent=2, ensure_ascii=False)
-            content = f"""
-<details>
-<summary>📊 Réponse JSON</summary>
-
-```json
-{formatted_json}
-```
-</details>
-                """
-
-            return {
-                "role": "assistant", 
-                "content": f"{content}", 
-                "metadata": {"title": tool_title}
-            }
-        except (json.JSONDecodeError, TypeError):
-            return {
-                "role": "assistant", 
-                "content": f"{text_content}", 
-                "metadata": {"title": tool_title}
-            }
-    else:
-        # Autres types de nœuds
-        return {
-            "role": "assistant", 
-            "content": f"[{message.type}] {text_content}"
-        }
 
 
 async def load_conversation_history(thread_id: str):
@@ -174,11 +95,16 @@ async def load_conversation_history(thread_id: str):
     return history
 
 
-# https://openlayers-elements.netlify.app/
+# Web component <ol-simple-map> (bundle Vite en UMD : front/vite.config.ts → demo-geocontext.min.js).
+# Sous Gradio 6, le contenu à injecter dans <head> ne doit plus être passé à gr.Blocks(...),
+# mais à chaque gr.mount_gradio_app(..., head=HTML_HEAD) pour que le script enregistre
+# l’élément avant le rendu du chat (Markdown/HTML des messages).
+# Réf. composants : https://openlayers-elements.netlify.app/
+FRONT_VERSION="20260420"  # à incrémenter pour forcer le rechargement du front
 HTML_HEAD = f"""
-<script src="/front/demo-geocontext.min.js"></script>
-<link rel="stylesheet" href="/front/demo-geocontext.css"></link>
-<link rel="stylesheet" href="/assets/gradio.css"></link>
+<script src="/front/demo-geocontext.min.js?v={FRONT_VERSION}"></script>
+<link rel="stylesheet" href="/front/demo-geocontext.css?v={FRONT_VERSION}" />
+<link rel="stylesheet" href="/assets/gradio.css?v={FRONT_VERSION}" />
 """
 
 CONTACT_EMAIL=os.getenv("CONTACT_EMAIL", "dev@localhost")
@@ -229,7 +155,7 @@ Ce service est utilisable uniquement avec un compte geoplateforme. <b>Tous vos m
 """
 
 
-with gr.Blocks(head=HTML_HEAD,title="demo-geocontext") as demo:
+with gr.Blocks(title="demo-geocontext") as demo:
     # Logo and header description
     header = gr.Markdown(value=HTML_HEADER)
     # demo explanation
@@ -238,12 +164,10 @@ with gr.Blocks(head=HTML_HEAD,title="demo-geocontext") as demo:
     )
     # Component for chatbot display
     chatbot = gr.Chatbot(
-        type="messages", 
         label="demo-geocontext",
-        show_copy_button=True,
-        show_copy_all_button=True,
+        buttons=["copy", "copy_all"],
         resizable=True,
-        sanitize_html=False,
+        # sanitize_html=False,
     )
 
     # Component for user message
@@ -304,9 +228,20 @@ with gr.Blocks(head=HTML_HEAD,title="demo-geocontext") as demo:
         """answer the last user message in history by invoking the agent"""
 
         global graph
-        
-        # retrieve the last user message
-        user_message = history[-1]['content']
+
+        if not history:
+            yield history
+            return
+
+        last_message = history[-1]
+        if not isinstance(last_message, dict) or last_message.get("role") != "user":
+            yield history
+            return
+
+        user_message = str(last_message.get("content", "")).strip()
+        if user_message == "":
+            yield history
+            return
 
         # required to invoke the graph with short term memory
         config = {"configurable": {"thread_id": thread_id}}
@@ -356,7 +291,7 @@ EXPLANATION_DEMO_SHARE = f"""
 Vous consultez une discussion en lecture seule.
 """
 
-with gr.Blocks(head=HTML_HEAD, title="demo-geocontext (lecture seule)") as demo_share:
+with gr.Blocks(title="demo-geocontext (lecture seule)") as demo_share:
     # Logo and header description
     header = gr.Markdown(value=HTML_HEADER)
     # demo explanation
@@ -365,12 +300,10 @@ with gr.Blocks(head=HTML_HEAD, title="demo-geocontext (lecture seule)") as demo_
     )
     # Component for chatbot display
     chatbot = gr.Chatbot(
-        type="messages", 
         label="demo-geocontext",
-        show_copy_button=True,
-        show_copy_all_button=True,
+        buttons=["copy", "copy_all"],
         resizable=True,
-        sanitize_html=False
+        # sanitize_html=False,
     )
     # Link to chatbot main page
     chatbot_link = gr.Markdown(
@@ -402,7 +335,7 @@ with gr.Blocks(head=HTML_HEAD, title="demo-geocontext (lecture seule)") as demo_
 # Yes... This is an abusive reuse of Gradio to serve a static markdown page :)
 # load pages/mentions-legales.md
 MENTION_LEGALES_PATH="pages/mentions-legales.md"
-with gr.Blocks(head=HTML_HEAD, title="demo-geocontext - mentions légales") as mentions_legales:
+with gr.Blocks(title="demo-geocontext - mentions légales") as mentions_legales:
     # Logo and header description
     header = gr.Markdown(value=HTML_HEADER)
 
@@ -423,9 +356,28 @@ def get_gradio_user(request: Request):
     # TODO: check groups if needed and available in token
     return user.email
 
-app = gr.mount_gradio_app(app, demo, path="/chatbot", auth_dependency=get_gradio_user, show_api=False)
-app = gr.mount_gradio_app(app, demo_share, path="/discussion", show_api=False)
-app = gr.mount_gradio_app(app, mentions_legales, path="/mentions-legales", show_api=False)
+app = gr.mount_gradio_app(
+    app,
+    demo,
+    path="/chatbot",
+    head=HTML_HEAD,
+    auth_dependency=get_gradio_user,
+    footer_links=["gradio", "settings"],
+)
+app = gr.mount_gradio_app(
+    app,
+    demo_share,
+    path="/discussion",
+    head=HTML_HEAD,
+    footer_links=["gradio", "settings"],
+)
+app = gr.mount_gradio_app(
+    app,
+    mentions_legales,
+    path="/mentions-legales",
+    head=HTML_HEAD,
+    footer_links=["gradio", "settings"],
+)
 
 class HealthCheckFilter(logging.Filter):
     """Remove /health and /health/* from application server logs"""
@@ -445,5 +397,3 @@ if __name__ == "__main__":
         timeout_keep_alive=5,  # Ferme les connexions keep-alive après 5 secondes
         timeout_graceful_shutdown=10,  # Timeout gracieux de 10 secondes
     )
-
-

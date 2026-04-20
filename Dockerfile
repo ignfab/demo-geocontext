@@ -30,8 +30,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 COPY assets ./assets
 COPY pages ./pages
 COPY front/dist ./front/dist
-# Copy python scripts
-COPY *.py .
+# Copy python package
+COPY app ./app
 # Copy LICENSE
 COPY LICENSE .
 
@@ -48,4 +48,4 @@ ENV GRADIO_ANALYTICS_ENABLED="False"
 
 ENV PATH="/app/.venv/bin:$PATH"
 EXPOSE 8000
-CMD ["python", "demo_gradio.py"]
+CMD ["python", "-m", "app.server"]

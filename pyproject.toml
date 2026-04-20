@@ -6,20 +6,26 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "asyncio>=4.0.0",
-    "fastapi>=0.117.1",
-    "gradio>=5.47.0",
-    "langchain>=0.3.27",
-    "langchain-anthropic>=0.3.21",
-    "langchain-google-genai>=2.1.12",
-    "langchain-mcp-adapters>=0.1.10",
-    "langchain-ollama>=0.3.8",
-    "langgraph>=0.6.8",
-    "langgraph-checkpoint-redis>=0.1.1",
-    "langgraph-checkpoint-postgres>=3.0.0",
-    "psycopg[binary,pool]>=3.2.8",
-    "uvicorn>=0.37.0",
+    "fastapi>=0.136.0",
+    "gradio>=6.12.0",
+    "langchain>=1.2.15",
+    "langchain-anthropic>=1.4.1",
+    "langchain-google-genai>=4.2.2",
+    "langchain-ollama>=1.1.0",
+    "langgraph-checkpoint-redis>=0.4.1",
+    "langgraph-checkpoint-postgres>=3.0.5",
+    "langgraph>=1.1.8",
+    "psycopg[binary,pool]>=3.3.3",
+    "uvicorn>=0.44.0",
+    "langchain-mcp-adapters>=0.2.2",
 ]
 [dependency-groups]
 dev = [
-  "langchain-ollama"
+  "langchain-ollama>=1.1.0",
+  "pytest>=9.0.3",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"

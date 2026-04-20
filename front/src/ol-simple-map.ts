@@ -3,8 +3,10 @@ import { fromLonLat } from 'ol/proj';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
+import { Extent } from 'ol/extent';
+import Projection from 'ol/proj/Projection';
 
-import { getBackgroundLayer } from './helpers';
+import { getBackgroundLayer, getFeatureFromURL } from './helpers';
 
 class OlSimpleMap extends HTMLElement {
   private map: Map | null = null;
@@ -153,8 +155,19 @@ class OlSimpleMap extends HTMLElement {
 
     // Créer une nouvelle source vectorielle
     const vectorSource = new VectorSource({
-      url: dataUrl,
-      format: new GeoJSON()
+      loader: async (extent: Extent, resolution: number, projection: Projection) => {
+        try {
+          const geojson = await getFeatureFromURL(dataUrl);
+          return new GeoJSON().readFeatures(geojson, {
+            featureProjection: projection
+          });
+        } catch (error) {
+          vectorSource.removeLoadedExtent(extent);
+          console.error(error);
+          return [];
+        }
+      },
+      strategy: () => [[-Infinity, -Infinity, Infinity, Infinity]]
     });
 
     // Créer une nouvelle couche vectorielle
