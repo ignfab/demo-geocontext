@@ -5,18 +5,19 @@ def create_map(
     lon: float = None, lat: float = None, zoom: int = None,
     geojson_url: str = "", background: str = "osm"
 ) -> str:
-    """Create a map and return it as an HTML string.
+    """Crée une carte et la renvoie sous forme de chaîne HTML.
 
-    Args:
-        lon: center longitude (optional if geojson_url is provided)
-        lat: center latitude (optional if geojson_url is provided)
-        zoom: zoom level (optional, will auto-fit if geojson_url is provided and zoom is not specified)
-        geojson_url: URL to a GeoJSON file to overlay on the map (optional)
-        background: background layer name (default: "osm", can also use "gpf:GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2" for IGN France)
+    Paramètres :
+        lon : longitude du centre (optionnelle si `geojson_url` est fourni)
+        lat : latitude du centre (optionnelle si `geojson_url` est fourni)
+        zoom : niveau de zoom (optionnel, ajustement automatique si `geojson_url` est fourni et `zoom` n'est pas défini)
+        geojson_url : URL d'un fichier GeoJSON à superposer sur la carte (optionnel)
+        background : nom de la couche de fond (par défaut : "osm", peut aussi être "gpf:GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2" pour l'IGN France)
 
-    Important:
-    - Don't create a map unless the user asks for it.
-    - The tool supports a single layer of GeoJSON data (do not try to pass multiple URL in a single call).
+    Important :
+    - Ne crée pas de carte si l'utilisateur ne le demande pas.
+    - L'outil prend en charge une seule couche de données GeoJSON (n'essaie pas de passer plusieurs URL dans un seul appel).
+    - Ne jamais construire l'URL `geojson_url` manuellement. Toujours utiliser `gpf_wfs_get_features` avec `result_type: "request"` au préalable pour obtenir les informations nécessaires.
     """
     # Construire les attributs optionnels
     lon_attr = f'lon="{lon}"' if lon is not None else ""
@@ -42,4 +43,3 @@ def create_map(
     attributes_str = " ".join(attributes)
 
     return f"<ol-simple-map {attributes_str}></ol-simple-map>"
-
