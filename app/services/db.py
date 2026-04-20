@@ -76,7 +76,10 @@ async def get_database() -> AsyncIterator[BaseDatabase]:
         logger.debug("setup AsyncRedisSaver checkpointer...")
         await checkpointer.asetup()
         logger.info("RedisDatabase created")
-        yield RedisDatabase(redis_client=redis_client, checkpointer=checkpointer)
+        try:
+            yield RedisDatabase(redis_client=redis_client, checkpointer=checkpointer)
+        finally:
+            await redis_client.aclose()
     elif DB_URI.startswith("postgresql://"):
         logger.info("create AsyncConnectionPool for PostgreSQL...")
         connection_kwargs = {
