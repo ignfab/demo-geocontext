@@ -238,7 +238,18 @@ with gr.Blocks(title="demo-geocontext") as demo:
             yield history
             return
 
-        user_message = str(last_message.get("content", "")).strip()
+        # Gradio history content can be a string or a structured list depending on version/state.
+        content = last_message.get("content")
+        user_message = ""
+        if isinstance(content, str):
+            user_message = content.strip()
+        elif isinstance(content, list) and len(content) > 0:
+            first_item = content[0]
+            if isinstance(first_item, dict):
+                user_message = str(first_item.get("text") or "").strip()
+            elif isinstance(first_item, str):
+                user_message = first_item.strip()
+
         if user_message == "":
             yield history
             return
