@@ -101,10 +101,11 @@ async def load_conversation_history(thread_id: str):
 # mais à chaque gr.mount_gradio_app(..., head=HTML_HEAD) pour que le script enregistre
 # l’élément avant le rendu du chat (Markdown/HTML des messages).
 # Réf. composants : https://openlayers-elements.netlify.app/
-HTML_HEAD = """
-<script src="/front/demo-geocontext.min.js"></script>
-<link rel="stylesheet" href="/front/demo-geocontext.css" />
-<link rel="stylesheet" href="/assets/gradio.css" />
+FRONT_VERSION="20260420"  # à incrémenter pour forcer le rechargement du front
+HTML_HEAD = f"""
+<script src="/front/demo-geocontext.min.js?v={FRONT_VERSION}"></script>
+<link rel="stylesheet" href="/front/demo-geocontext.css?v={FRONT_VERSION}" />
+<link rel="stylesheet" href="/assets/gradio.css?v={FRONT_VERSION}" />
 """
 
 CONTACT_EMAIL=os.getenv("CONTACT_EMAIL", "dev@localhost")
