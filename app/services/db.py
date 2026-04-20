@@ -96,6 +96,12 @@ async def get_database() -> AsyncIterator[BaseDatabase]:
         raise RuntimeError("Invalid DB_URI (not starting with redis:// or postgresql://)")
 
 
+async def is_database_healthy() -> bool:
+    """Check database health using the configured database context manager."""
+    async with get_database() as db:
+        return await db.is_healthy()
+
+
 async def get_thread_ids(checkpointer: AsyncRedisSaver) -> list[str]:
     """Find thread_ids by inspecting checkpointer"""
     thread_ids = []

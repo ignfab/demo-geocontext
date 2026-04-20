@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from .models import User
 from .services.auth import get_current_user
-from .services.db import get_database
+from .services.db import is_database_healthy
 from urllib.parse import quote as urlib_quote
 
 import gradio as gr
@@ -52,14 +52,13 @@ async def health():
 @app.get('/health/db')
 async def health_redis():
     try:
-        db = get_database()
+        healthy = await is_database_healthy()
     except RuntimeError:
         return JSONResponse(
             status_code=503,
             content={"status": "error", "message": "database is not ready"},
         )
 
-    healthy = await db.is_healthy()
     if healthy:
         return {"status": "ok", "message": "connected"} 
     else:
@@ -387,4 +386,3 @@ if __name__ == "__main__":
         timeout_keep_alive=5,  # Ferme les connexions keep-alive après 5 secondes
         timeout_graceful_shutdown=10,  # Timeout gracieux de 10 secondes
     )
-
