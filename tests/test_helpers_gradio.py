@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from types import SimpleNamespace
 
+import gradio as gr
+
 from app.helpers.gradio import to_gradio_message
 
 
@@ -30,16 +32,32 @@ def test_to_gradio_message_ai_string() -> None:
     assert out == {"role": "assistant", "content": "Hi there"}
 
 
-def test_to_gradio_message_ai_only_map_markup_returns_none() -> None:
+def test_to_gradio_message_ai_only_map_markup_uses_gr_html() -> None:
     text = '<ol-simple-map lon="3.28274" lat="47.368178"></ol-simple-map>'
     out = to_gradio_message(_message("ai", text))
-    assert out is None
+    assert out["role"] == "assistant"
+    assert isinstance(out["content"], gr.HTML)
 
 
-def test_to_gradio_message_ai_text_with_map_markup_keeps_text() -> None:
+def test_to_gradio_message_ai_text_with_map_splits_markdown_and_html() -> None:
     text = "Voici la carte:\n<ol-simple-map lon=\"3.28274\" lat=\"47.368178\"></ol-simple-map>"
     out = to_gradio_message(_message("ai", text))
-    assert out == {"role": "assistant", "content": "Voici la carte:"}
+    assert out["role"] == "assistant"
+    parts = out["content"]
+    assert isinstance(parts, list)
+    assert parts[0] == "Voici la carte:\n"
+    assert isinstance(parts[1], gr.HTML)
+
+
+def test_to_gradio_message_ai_text_map_then_text_trailing() -> None:
+    text = (
+        "Avant\n<ol-simple-map lon=\"1\" lat=\"2\"></ol-simple-map>\nAprès"
+    )
+    out = to_gradio_message(_message("ai", text))
+    parts = out["content"]
+    assert parts[0] == "Avant\n"
+    assert isinstance(parts[1], gr.HTML)
+    assert parts[2] == "\nAprès"
 
 
 def test_to_gradio_message_list_text_and_tool_use() -> None:
@@ -73,10 +91,9 @@ def test_to_gradio_message_tool_non_json_plain() -> None:
     }
 
 
-def test_to_gradio_message_tool_map_title_when_ol_tag() -> None:
+def test_to_gradio_message_tool_map_suppressed_for_llm_injection() -> None:
     text = json.dumps({"html": "<ol-simple-map />"})
-    out = to_gradio_message(_message("tool", text))
-    assert out["metadata"]["title"] == "🗺️ Carte"
+    assert to_gradio_message(_message("tool", text)) is None
 
 
 def test_to_gradio_message_unknown_node_type() -> None:

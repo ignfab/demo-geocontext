@@ -5,7 +5,14 @@ def create_map(
     lon: float = None, lat: float = None, zoom: int = None,
     geojson_url: str = "", background: str = "osm"
 ) -> str:
-    """Crée une carte et la renvoie sous forme de chaîne HTML.
+    """Crée une carte et la renvoie sous forme d'un seul fragment HTML.
+
+    La valeur de retour est une balise ``<ol-simple-map ...></ol-simple-map>`` à
+    recopier **à l'identique** (mêmes attributs, même ordre) dans la prochaine
+    réponse assistant en markdown, à l'endroit où la carte doit apparaître
+    (par ex. après une phrase d'introduction, puis le texte explicatif peut
+    suivre). Sans ce fragment dans cette réponse, la carte ne s'affiche pas
+    dans le chat.
 
     Paramètres :
         lon : longitude du centre (optionnelle si `geojson_url` est fourni)
