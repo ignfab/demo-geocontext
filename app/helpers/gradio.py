@@ -1,16 +1,47 @@
 import json
 import logging
 import re
+
 import gradio as gr
 
 logger = logging.getLogger(__name__)
 
-# TODO: This is a very hacky way to remove map HTML from assistant messages.
-# We should ideally have a better way to separate map content from text content in the message structure.
-_MAP_TAG_RE = re.compile(
-    r"<ol-simple-map\b[^>]*>(?:\s*</ol-simple-map>)?",
-    flags=re.IGNORECASE | re.DOTALL,
+# ``create_map`` map markup: the Chatbot escapes ``<ol-simple-map>`` in Markdown,
+# so we extract the block and render it with ``gr.HTML``.
+_OL_SIMPLE_MAP_BLOCK = re.compile(
+    r"<ol-simple-map\b[^>]*/>|<ol-simple-map\b[^>]*>[\s\S]*?</ol-simple-map>",
+    flags=re.IGNORECASE,
 )
+
+
+def _ai_content_for_gradio_chatbot(text: str) -> str | list:
+    """Split assistant markdown so ``<ol-simple-map>`` is not escaped.
+
+    The Chatbot renders strings as Markdown, so custom map tags show as literal
+    text. Each match from ``_OL_SIMPLE_MAP_BLOCK`` becomes ``gr.HTML(block)``;
+    other segments stay plain strings (unchanged Markdown). Returns ``text`` if
+    there is nothing to split or the regex matches nothing; otherwise a single
+    ``gr.HTML`` or a list alternating strings and ``gr.HTML`` in message order.
+    """
+    if "<ol-simple-map" not in text.casefold():
+        return text
+    matches = list(_OL_SIMPLE_MAP_BLOCK.finditer(text))
+    if not matches:
+        return text
+    chunks: list = []
+    last_end = 0
+    for m in matches:
+        before = text[last_end : m.start()]
+        if before:
+            chunks.append(before)
+        chunks.append(gr.HTML(m.group(0)))
+        last_end = m.end()
+    after = text[last_end:]
+    if after:
+        chunks.append(after)
+    if len(chunks) == 1:
+        return chunks[0]
+    return chunks
 
 
 def to_gradio_message(message):
@@ -22,18 +53,18 @@ def to_gradio_message(message):
         logger.warning(f"last_message: {message.pretty_print()}")
         return None
 
-    # Extraire le contenu textuel
+    # Extract textual content
     text_content = ""
     if isinstance(message.content, str):
         text_content = message.content
     elif isinstance(message.content, list):
-        # Extraire le texte des blocks de contenu
+        # Extract text from content blocks
         text_parts = []
         for block in message.content:
             if isinstance(block, dict) and block.get("type") == "text":
                 text_parts.append(block.get("text", ""))
             elif isinstance(block, dict) and block.get("type") == "tool_use":
-                # Afficher les appels d'outils de manière lisible
+                # Show tool calls in a readable form
                 tool_name = block.get("name", "unknown")
                 tool_args = block.get("input", {})
                 text_parts.append(f"🔧 Appel outil: {tool_name}({tool_args})")
@@ -43,34 +74,27 @@ def to_gradio_message(message):
         logger.warning(f"message: {message.pretty_print()}")
         return None
 
-    # Ajouter un nouveau message pour chaque type d'événement
+    # One chat bubble per LangChain message type
     if message.type == "human":
         return {
             "role": "user",
             "content": f"{text_content}",
         }
     elif message.type == "ai":
-        # TODO : A dirty hack for now to avoid showing raw map HTML in assistant text. 
-        # We should ideally have a better way to separate map content from text content in the message structure.
-        cleaned_text = _MAP_TAG_RE.sub("", text_content).strip()
-        if cleaned_text == "":
+        text_stripped = text_content.strip()
+        if text_stripped == "":
             return None
         return {
             "role": "assistant",
-            "content": f"{cleaned_text}",
-            # "metadata": {"title": "💭 Réflexion"}
+            "content": _ai_content_for_gradio_chatbot(text_stripped),
         }
     elif message.type == "tool":
-        # Si c'est une carte, l'afficher dans un bloc dédié
+        # Map tool: no separate bubble — the LLM pastes the fragment into the next reply.
         if "<ol-simple-map" in text_content:
-            return {
-                "role": "assistant",
-                "content": gr.HTML(text_content),
-                "metadata": {"title": "🗺️ Carte"},
-            }
+            return None
 
         tool_title = "📊 Résultat outil"
-        # Si c'est du JSON valide, le formater avec coloration syntaxique
+        # Pretty-print valid JSON for syntax highlighting in the UI
         try:
             parsed_json = json.loads(text_content)
             formatted_json = json.dumps(parsed_json, indent=2, ensure_ascii=False)
@@ -96,7 +120,7 @@ def to_gradio_message(message):
                 "metadata": {"title": tool_title},
             }
     else:
-        # Autres types de nœuds
+        # Other LangGraph / LangChain node types
         return {
             "role": "assistant",
             "content": f"[{message.type}] {text_content}",
