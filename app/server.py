@@ -95,12 +95,8 @@ async def load_conversation_history(thread_id: str):
     return history
 
 
-# Web component <ol-simple-map> (bundle Vite en UMD : front/vite.config.ts → demo-geocontext.min.js).
-# Sous Gradio 6, le contenu à injecter dans <head> ne doit plus être passé à gr.Blocks(...),
-# mais à chaque gr.mount_gradio_app(..., head=HTML_HEAD) pour que le script enregistre
-# l’élément avant le rendu du chat (Markdown/HTML des messages).
-# Réf. composants : https://openlayers-elements.netlify.app/
-FRONT_VERSION="20260420"  # à incrémenter pour forcer le rechargement du front
+# Web component <ol-simple-map> (voir front)
+FRONT_VERSION="20260430"  # à incrémenter pour forcer le rechargement du front
 HTML_HEAD = f"""
 <script src="/front/demo-geocontext.min.js?v={FRONT_VERSION}"></script>
 <link rel="stylesheet" href="/front/demo-geocontext.css?v={FRONT_VERSION}" />

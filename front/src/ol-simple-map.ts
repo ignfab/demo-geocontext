@@ -77,7 +77,9 @@ class OlSimpleMap extends HTMLElement {
 
     const view = new View({
       center: fromLonLat([lon, lat]),
-      zoom: zoom
+      zoom: zoom,
+      minZoom: 0,
+      maxZoom: 19,
     });
 
     this.map = new Map({
