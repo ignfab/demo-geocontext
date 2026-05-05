@@ -70,12 +70,36 @@ async def get_agent() -> AsyncIterator[CompiledStateGraph]:
         yield agent
 
 
-async def get_messages(graph: CompiledStateGraph, thread_id: str) -> AsyncIterator[Any]:
-    """Itère sur l'historique des messages d'un thread."""
-    config = {"configurable": {"thread_id": thread_id}}
-    state = await graph.aget_state(config)
+@asynccontextmanager
+async def get_agent_no_tools() -> AsyncIterator[CompiledStateGraph]:
+    """Get an agent without tools to read the history of a thread"""
+    async with get_database() as db:
+        check_api_key()
+        logger.info("Create chat model: %s (temperature=%s)", MODEL_NAME, TEMPERATURE)
+        model = init_chat_model(MODEL_NAME, temperature=TEMPERATURE)
+        agent = create_agent(
+            model=model,
+            tools=[],
+            checkpointer=db.checkpointer,
+            middleware=[
+                ToolRetryMiddleware(
+                    max_retries=0,
+                    retry_on=(ToolException,),
+                    on_failure=format_tool_error,
+                )
+            ],
+        )
+        logger.info(f"Agent created successfully")
+        yield agent
 
-    if "messages" in state.values:
-        messages = state.values["messages"]
+
+
+async def get_messages(agent: CompiledStateGraph, thread_id: str) -> AsyncIterator[Any]:
+    """Get the history of a thread"""
+
+    config = {"configurable": {"thread_id": thread_id}}
+    state = await agent.aget_state(config)
+    if 'messages' in state.values:
+        messages = state.values['messages']
         for message in messages:
-            yield message
+            yield message,state.created_at
