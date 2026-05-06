@@ -72,6 +72,16 @@ export GOOGLE_API_KEY="YourApiKey"
 docker compose up -d
 ```
 
+## Advanced usage
+
+### Export history and token consuption
+
+```bash
+# Use the following command to generate a CSV file
+uv run python -m app.export
+```
+
+
 ## Credits
 
 * [gradio - Chatbot](https://www.gradio.app/docs/gradio/chatbot)

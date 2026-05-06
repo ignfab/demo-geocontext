@@ -78,13 +78,13 @@ async def is_database_healthy() -> bool:
         return await db.is_healthy()
 
 
-async def get_thread_ids(checkpointer: AsyncPostgresSaver) -> list[str]:
+async def get_thread_ids(database: BaseDatabase) -> list[str]:
     """Find thread_ids by inspecting checkpointer"""
     thread_ids = []
 
     try:
         logger.info("get_thread_ids(checkpointer) ...")
-        async for checkpoint_tuple in checkpointer.alist({}):
+        async for checkpoint_tuple in database.checkpointer.alist({}):
             config = checkpoint_tuple.config
             if "configurable" in config and "thread_id" in config["configurable"]:
                 thread_id = config["configurable"]["thread_id"]
