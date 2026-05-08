@@ -82,8 +82,9 @@ async def load_conversation_history(thread_id: str):
     
     history = []
     try:
-        async for message in get_messages(graph, thread_id):
-            logger.debug(f"Traitement message: type={getattr(message, 'type', 'unknown')}, content={getattr(message, 'content', 'no content')}")
+        async for message, message_date in get_messages(graph, thread_id):
+
+            logger.debug(f"Traitement message: type={getattr(message, 'type', 'unknown')}, content={getattr(message, 'content', 'no content')}, date={message_date}")
             gradio_message = to_gradio_message(message)
             if gradio_message:
                 history.append(gradio_message)
