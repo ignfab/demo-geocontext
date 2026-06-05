@@ -7,6 +7,28 @@ TEMPERATURE = float(os.getenv("TEMPERATURE", 0.0))
 if TEMPERATURE < 0 or TEMPERATURE > 1:
     raise ValueError("TEMPERATURE must be between 0 and 1")
 
+# Dynamic tool selection: a lightweight model selects the most relevant tools for
+# each turn so that the verbose tool schemas (notably the gpf_wfs_* family) are not
+# all sent to the main model on every call. Set TOOL_SELECTOR_MODEL to an empty
+# string (or "none") to disable the feature and send every tool to the main model.
+TOOL_SELECTOR_MODEL = os.getenv("TOOL_SELECTOR_MODEL", "anthropic:claude-haiku-4-5")
+TOOL_SELECTOR_MAX_TOOLS = int(os.getenv("TOOL_SELECTOR_MAX_TOOLS", "5"))
+if TOOL_SELECTOR_MAX_TOOLS < 1:
+    raise ValueError("TOOL_SELECTOR_MAX_TOOLS must be greater than or equal to 1")
+# Tools always exposed to the main model, regardless of the selection. They do not
+# count against TOOL_SELECTOR_MAX_TOOLS.
+TOOL_SELECTOR_ALWAYS_INCLUDE = [
+    name.strip()
+    for name in os.getenv("TOOL_SELECTOR_ALWAYS_INCLUDE", "create_map,geocode").split(",")
+    if name.strip()
+]
+
+
+def is_tool_selection_enabled() -> bool:
+    """Return whether dynamic tool selection is enabled."""
+    return TOOL_SELECTOR_MODEL.strip().lower() not in ("", "none")
+
+
 # 
 DB_URI = os.getenv("DB_URI", None)
 
