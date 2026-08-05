@@ -17,6 +17,8 @@ dependencies = [
     "psycopg[binary,pool]>=3.3.3",
     "uvicorn>=0.44.0",
     "langchain-mcp-adapters>=0.2.2",
+    "mcp>=1.27.0,<2",
+    "mcp-server-time>=2026.7.10",
 ]
 
 [dependency-groups]

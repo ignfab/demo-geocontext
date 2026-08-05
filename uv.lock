@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.13"
 resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'win32'",
@@ -361,6 +361,8 @@ dependencies = [
     { name = "langchain-ollama" },
     { name = "langgraph" },
     { name = "langgraph-checkpoint-postgres" },
+    { name = "mcp" },
+    { name = "mcp-server-time" },
     { name = "psycopg", extra = ["binary", "pool"] },
     { name = "uvicorn" },
 ]
@@ -383,6 +385,8 @@ requires-dist = [
     { name = "langchain-ollama", specifier = ">=1.1.0" },
     { name = "langgraph", specifier = ">=1.1.8" },
     { name = "langgraph-checkpoint-postgres", specifier = ">=3.0.5" },
+    { name = "mcp", specifier = ">=1.27.0,<2" },
+    { name = "mcp-server-time", specifier = ">=2026.7.10" },
     { name = "psycopg", extras = ["binary", "pool"], specifier = ">=3.3.3" },
     { name = "uvicorn", specifier = ">=0.44.0" },
 ]
@@ -1066,6 +1070,21 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/8b/eb/c0cfc62075dc6e1ec1c64d352ae09ac051d9334311ed226f1f425312848a/mcp-1.27.0.tar.gz", hash = "sha256:d3dc35a7eec0d458c1da4976a48f982097ddaab87e278c5511d5a4a56e852b83", size = 607509, upload-time = "2026-04-02T14:48:08.88Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9c/46/f6b4ad632c67ef35209a66127e4bddc95759649dd595f71f13fba11bdf9a/mcp-1.27.0-py3-none-any.whl", hash = "sha256:5ce1fa81614958e267b21fb2aa34e0aea8e2c6ede60d52aba45fd47246b4d741", size = 215967, upload-time = "2026-04-02T14:48:07.24Z" },
+]
+
+[[package]]
+name = "mcp-server-time"
+version = "2026.7.10"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "mcp" },
+    { name = "pydantic" },
+    { name = "tzdata" },
+    { name = "tzlocal" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ed/d7/27d984c1cd61847975ed33c528b86ea3cba946dd37c0ceb597fba062df03/mcp_server_time-2026.7.10.tar.gz", hash = "sha256:47fcd220e529d9a2e08c68af3d64633197b6f920489d391293bfe9ef0f387830", size = 63132, upload-time = "2026-07-10T03:31:05.833Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d1/1a/c1bb1eeea019fc547964384db9c6a092837cb3cb4936d75517e19826d8d9/mcp_server_time-2026.7.10-py3-none-any.whl", hash = "sha256:b99cb0ecfe94ec8e05d4abb65c617b591a21e61a17a084ac782af0fa9e82c944", size = 6759, upload-time = "2026-07-10T03:31:04.803Z" },
 ]
 
 [[package]]
@@ -1905,6 +1924,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/19/f5/cd531b2d15a671a40c0f66cf06bc3570a12cd56eef98960068ebbad1bf5a/tzdata-2026.1.tar.gz", hash = "sha256:67658a1903c75917309e753fdc349ac0efd8c27db7a0cb406a25be4840f87f98", size = 197639, upload-time = "2026-04-03T11:25:22.002Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b0/70/d460bd685a170790ec89317e9bd33047988e4bce507b831f5db771e142de/tzdata-2026.1-py2.py3-none-any.whl", hash = "sha256:4b1d2be7ac37ceafd7327b961aa3a54e467efbdb563a23655fbfe0d39cfc42a9", size = 348952, upload-time = "2026-04-03T11:25:20.313Z" },
+]
+
+[[package]]
+name = "tzlocal"
+version = "5.4.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "tzdata", marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/81/5b/879b2f932adfa7a053c360d50bc896c977fa6426109185f7c12ebdd0cb9d/tzlocal-5.4.4.tar.gz", hash = "sha256:8dbb8660838688a7b6ba4fed31d18dedf842afb4d47ca050d6d891c2c15f3be4", size = 31170, upload-time = "2026-06-29T08:03:40.026Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9e/a4/017a7a6cbe387d961a688ec31364ae60a5c4e22c96ae9921b79a947c855d/tzlocal-5.4.4-py3-none-any.whl", hash = "sha256:aae09f0126a8a86fa736be266eb4a471380d26a0de3bc14844e7821fee3e2a15", size = 18115, upload-time = "2026-06-29T08:03:38.666Z" },
 ]
 
 [[package]]
