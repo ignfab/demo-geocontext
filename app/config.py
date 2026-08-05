@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from typing import Any
 
 MODEL_NAME = os.getenv("MODEL_NAME", "anthropic:claude-sonnet-4-6")
@@ -45,8 +46,11 @@ def get_mcp_servers_config() -> dict[str, dict[str, Any]]:
             "env": geocontext_env,
         },
         "time": {
-            "command": "uvx",
-            "args": ["mcp-server-time"],
+            # Lancé depuis le venv du projet (version figée par uv.lock) plutôt
+            # qu'avec uvx, qui résolvait les dépendances au démarrage et pouvait
+            # récupérer un mcp incompatible avec mcp-server-time.
+            "command": sys.executable,
+            "args": ["-m", "mcp_server_time"],
             "transport": "stdio",
             "env": proxy if proxy else None,
         },
